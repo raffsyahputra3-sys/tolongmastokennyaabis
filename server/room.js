@@ -21,6 +21,7 @@ import {
 import { HEROES, getHero } from "../shared/heroes.js";
 import { minionVariant } from "../shared/minions.js";
 import { questionsForLevel } from "../shared/questions.js";
+import { TURRET_QUESTIONS } from "../shared/turretQuestions.js";
 import {
   circleCircle,
   circleRect,
@@ -2126,8 +2127,9 @@ export class Room {
   }
 
   openTowerQuiz(attacker, tower, aimX, aimY, now) {
-    // Soal menara dibuat lebih mudah: selalu dari tingkat pemula.
-    const pool = questionsForLevel("pemula");
+    // Soal menara memakai bank soal pilihan user (lebih mudah: tingkat pemula).
+    let pool = TURRET_QUESTIONS.filter((q) => q.level === "pemula");
+    if (pool.length === 0) pool = TURRET_QUESTIONS;
     const question = pool[Math.floor(Math.random() * pool.length)];
     this.duelSeq += 1;
     const duel = {
