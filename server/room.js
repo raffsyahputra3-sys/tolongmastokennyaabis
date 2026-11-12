@@ -2126,7 +2126,9 @@ export class Room {
   }
 
   openTowerQuiz(attacker, tower, aimX, aimY, now) {
-    const question = this.drawQuestion();
+    // Soal menara dibuat lebih mudah: selalu dari tingkat pemula.
+    const pool = questionsForLevel("pemula");
+    const question = pool[Math.floor(Math.random() * pool.length)];
     this.duelSeq += 1;
     const duel = {
       id: `duel-${this.duelSeq}-${question.id}`,
