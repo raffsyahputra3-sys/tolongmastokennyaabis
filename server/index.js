@@ -518,6 +518,14 @@ export function createGameServer(options = {}) {
         return;
       }
 
+      if (message.type === "duelExit") {
+        if (!ctx.roomCode || !ctx.playerId) return;
+        const room = rooms.get(ctx.roomCode);
+        if (!room) return;
+        room.cancelDuelsFor(ctx.playerId, now);
+        return;
+      }
+
       if (message.type === "leave") {
         const roomCode = ctx.roomCode;
         const playerId = ctx.playerId;

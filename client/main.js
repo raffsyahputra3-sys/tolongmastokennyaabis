@@ -1182,9 +1182,18 @@ function answerClash(index) {
 const DUEL_RESULT_MS = 1500;
 let duelHideTimer = 0;
 
+function exitDuel() {
+  const duel = ui.activeDuel;
+  if (!duel || duel.resolved) return;
+  client?.send({ type: "duelExit", clashId: duel.id });
+  duel.resolved = true;
+  hideDuel();
+}
+
 function showDuel(duel) {
   window.clearTimeout(duelHideTimer);
   document.body.classList.add("duel-open");
+  if (els.duelExitBtn) els.duelExitBtn.onclick = exitDuel;
   ui.activeDuel = { ...duel, answered: false, selected: null };
   els.duelCard.classList.remove("hidden");
   els.duelCard.classList.toggle("defend", duel.role === "victim");
@@ -1281,6 +1290,11 @@ function showDuelResult(result) {
 function tickDuelTimer() {
   const duel = ui.activeDuel;
   if (!duel || duel.resolved) return;
+  if (!duel.endsAt) {
+    els.duelTimer.textContent = "∞";
+    els.duelTimerFill.style.width = "100%";
+    return;
+  }
   const remaining = Math.max(0, duel.endsAt - serverNow());
   const total = Math.max(1, duel.endsAt - duel.startedAt);
   els.duelTimer.textContent = (remaining / 1000).toFixed(1);

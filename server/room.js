@@ -2138,7 +2138,7 @@ export class Room {
       towerId: tower.id,
       question,
       startedAt: now,
-      endsAt: now + DUEL.duration * 1000,
+      endsAt: null,
       aimX,
       aimY,
       answers: { attacker: null, victim: null },
@@ -2176,7 +2176,7 @@ export class Room {
       options: duel.question.options,
       startedAt: duel.startedAt,
       endsAt: duel.endsAt,
-      remaining: Math.max(0, duel.endsAt - now),
+      remaining: duel.endsAt ? Math.max(0, duel.endsAt - now) : null,
     };
   }
 
@@ -2192,7 +2192,7 @@ export class Room {
     const role =
       duel.attackerId === player.id ? "attacker" : duel.victimId === player.id ? "victim" : null;
     if (!role) return { accepted: false, reason: "invalid" };
-    if (now > duel.endsAt) return { accepted: false, reason: "timeout" };
+    if (duel.endsAt && now > duel.endsAt) return { accepted: false, reason: "timeout" };
     if (!Number.isInteger(option) || option < 0 || option > 3) {
       return { accepted: false, reason: "option" };
     }
@@ -2227,7 +2227,7 @@ export class Room {
         this.answerDuel(player, duel, plan.option, now);
         if (!this.duels.has(duel.id)) break;
       }
-      if (this.duels.has(duel.id) && now >= duel.endsAt) this.resolveDuel(duel, now, "timeout");
+      if (this.duels.has(duel.id) && duel.endsAt && now >= duel.endsAt) this.resolveDuel(duel, now, "timeout");
     }
   }
 
