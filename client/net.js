@@ -33,7 +33,7 @@ function defaultServerUrl() {
   if (window.LOGICODIX_DEFAULT_SERVER) return normalizeServerUrl(window.LOGICODIX_DEFAULT_SERVER);
   // Aplikasi Android (Capacitor) dimuat dari perangkat sendiri, bukan dari server game:
   // alamat server harus diisi pemain (emulator memakai 10.0.2.2 untuk komputer host).
-  if (document.body?.dataset.native === "1") return normalizeServerUrl("wss://gatravolt.onrender.com");
+  if (document.body?.dataset.native === "1") return normalizeServerUrl("wss://hackathon-tong-sampah.onrender.com");
   if (window.location.protocol === "http:" || window.location.protocol === "https:") {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     return `${protocol}//${window.location.host}`;
