@@ -13,10 +13,10 @@ proyektil.
   <a href="https://hackathon-tong-sampah.onrender.com">
     <img alt="Main sekarang di server online" src="https://img.shields.io/badge/Main-Sekarang-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white">
   </a>
-  <a href="https://github.com/raffsyahputra3-sys/hackathon-tong-sampah/releases/latest/download/fisikAsik.apk">
+  <a href="https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/fisikAsik.apk">
     <img alt="Download APK Android" src="https://img.shields.io/badge/Download-APK%20Android-3DDC84?style=for-the-badge&logo=android&logoColor=white">
   </a>
-  <a href="https://render.com/deploy?repo=https://github.com/raffsyahputra3-sys/hackathon-tong-sampah">
+  <a href="https://render.com/deploy?repo=https://github.com/raffsyahputra3-sys/tolongmastokennyaabis">
     <img alt="Deploy server online" src="https://img.shields.io/badge/Deploy-Server%20Online-46E3B7?style=for-the-badge&logo=render&logoColor=white">
   </a>
 </p>
@@ -46,7 +46,7 @@ pertama bisa lambat beberapa detik.
 alamat server online sudah terisi otomatis (ubah lewat ikon gerigi bila perlu).
 APK di-build otomatis oleh GitHub Actions setiap push ke `main` dan diunggah ke
 halaman
-[Releases](https://github.com/raffsyahputra3-sys/hackathon-tong-sampah/releases).
+[Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases).
 
 Dokumen produk lengkap ada di [PRD.md](./PRD.md).
 
@@ -219,7 +219,7 @@ seperti systemd atau container orchestrator.
 ### Android — APK native (tombol download)
 
 1. Tekan tombol **Download APK Android** di bagian atas README (atau buka halaman
-   [Releases](https://github.com/raffsyahputra3-sys/hackathon-tong-sampah/releases)).
+   [Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)).
 2. Buka file `fisikAsik.apk` di HP. Bila muncul peringatan, aktifkan **Izinkan
    dari sumber ini** / **Instal aplikasi tidak dikenal**.
 3. Buka aplikasi **Logicodix**. Saat diminta **alamat server**, tempel alamat
@@ -279,7 +279,7 @@ Hasil (MVP dan papan skor, tombol **Main Lagi** di kanan-bawah).
 ## APK Android native (Capacitor)
 
 APK siap pasang tersedia di
-[Releases](https://github.com/raffsyahputra3-sys/hackathon-tong-sampah/releases)
+[Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)
 (tag `android-latest`). Build
 otomatis lewat GitHub Actions (`.github/workflows/android.yml`) setiap push ke
 `main`; hasilnya juga diunggah sebagai artifact **fisikAsik-apk**.
