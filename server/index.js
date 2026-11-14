@@ -1,4 +1,5 @@
 import { createServer as createHttpServer } from "node:http";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
 import { homedir, networkInterfaces } from "node:os";
@@ -247,6 +248,9 @@ async function tanganiAsisten(request, response, log, asistenHits) {
           error: pesan,
           upstreamStatus: upstream.status,
           upstreamCode: kode || null,
+          // Sidik jari kunci (hash 8 karakter) untuk memastikan kunci mana yang terpasang,
+          // tanpa pernah membocorkan kuncinya sendiri.
+          keyFingerprint: createHash("sha256").update(apiKey).digest("hex").slice(0, 12),
         }),
       );
       return;
