@@ -5,25 +5,100 @@
 - **Nama aplikasi:** GatraVolt — Game Pembelajaran Fisika Berbasis MOBA
 - **Aplikasi online:** <https://gatravolt.onrender.com>
 
-## Ringkasan
+## Latar belakang
 
-**Masalah yang diangkat.** Materi momentum, impuls, tumbukan, dan proyektil di
-fisika SMA sering terasa abstrak dan membosankan bila hanya dibaca dari buku,
-sehingga siswa sulit melihat hubungan antara rumus dan kejadian nyata. Latihan
-soal pun jarang memberi umpan balik langsung.
+### Masalah yang diangkat
 
-**Solusi.** MOBA fisika **3v3** real-time yang bisa dimainkan **online lewat
-internet**: cari lawan lewat matchmaking atau buat room privat dan bagikan kodenya
-ke teman, dan slot yang belum terisi otomatis diisi bot. Mekanik tempur memakai
-momentum, impuls, tumbukan, serta proyektil, dan **momen-momen penting
-diselesaikan lewat soal fisika** (kuis menara dan kuis hidup kembali). Ada juga
-modul belajar **Materi / Latihan / Latihan Harian** dan **Asisten Fisika** (chatbot
-AI), plus server otoritatif, AI takeover saat disconnect, dan client desktop
-Electron.
+Ada dua masalah yang saling bertabrakan di ruang yang sama: waktu dan perhatian
+pelajar.
 
-**Target pengguna.** Siswa SMA — terutama yang sedang mempelajari momentum &
-impuls — dan guru fisika yang mencari media ajar interaktif. Pemain umum yang
-menyukai MOBA juga bisa bermain tanpa latar belakang fisika mendalam.
+**1. Fisika dianggap sulit, abstrak, dan tidak menarik.** Momentum, impuls,
+tumbukan, serta proyektil biasanya disampaikan sebagai rumus di papan dan soal
+hitung di buku, sehingga siswa sulit melihat hubungan antara rumus dan kejadian
+nyata di sekitarnya. Latihan pun jarang memberi umpan balik langsung, dan
+kesalahpahaman konsep baru ketahuan setelah ujian. Dampaknya terlihat pada
+capaian: literasi sains Indonesia berada di **383 poin (level 1a)** pada PISA
+2022, jauh di bawah rata-rata OECD (~485), dan **hanya 36,81%** siswa mencapai
+level 2 alias kompetensi minimum sains — artinya sekitar **63% belum
+mencapainya**.
+
+**2. Energi pelajar habis di game, bukan untuk belajar.** Indonesia adalah pasar
+gim besar: **154,9 juta pemain** (peringkat ke-4 dunia menurut Komdigi, 2024) dan
+**42,23%** pemain game online bermain **lebih dari 4 jam per hari** (APJII, 2023).
+Sebagian berlanjut menjadi masalah serius: adiksi game pada pelajar Indonesia
+diperkirakan mencapai **~10,15%**, dengan dampak seperti gangguan tidur,
+prokrastinasi, hingga penurunan prestasi.
+
+Jadi, waktu luang pelajar sudah besar sekali — tetapi disalurkan ke aktivitas
+yang tidak menyentuh pemahaman konsep fisika. Buku teks tidak bisa bersaing
+memperebutkan perhatian itu, dan menambah soal latihan hanya menambah beban.
+
+### Solusi
+
+GatraVolt menyatukan dua dunia itu: **mengubah game dari pengalih perhatian
+menjadi ruang belajar**. Ini bukan aplikasi kuis yang ditempeli mini-game, dan
+bukan juga game yang ditempeli kuis — fisika adalah mekaniknya.
+
+- **MOBA fisika 3v3 real-time** yang dimainkan online: cari lawan lewat
+  matchmaking atau buat room privat dan bagikan kodenya ke teman; slot yang belum
+  terisi otomatis diisi bot, jadi tetap bisa dimainkan sendiri.
+- **Fisika sebagai hukum dunia, bukan tempelan**: gerak memakai momentum,
+  serangan adalah proyektil bermassa, dash memberi impuls, cover memantulkan
+  proyektil dan hancur oleh energi tumbukan (lihat [PRD.md](./PRD.md) §5).
+- **Soal di dalam pertempuran, bukan sebelum/sesudahnya**: momen penting
+  diselesaikan lewat **kuis menara** (jawaban benar = damage besar) dan **kuis
+  hidup kembali** (2 soal tanpa timer untuk bangkit). Jawaban salah langsung
+  diberi **penalti yang bisa dirasakan**, bukan sekadar skor di akhir.
+- **Jembatan dari bermain ke belajar**: modul **Materi / Latihan / Latihan
+  Harian** dan **Asisten Fisika** (chatbot AI yang hanya menjawab dari materi
+  game), plus server otoritatif, AI takeover saat koneksi terputus, dan client
+  desktop Electron.
+
+### Keselarasan dengan Kurikulum Merdeka
+
+Desain GatraVolt sengaja mengikuti pendekatan **Pembelajaran Mendalam**
+(Kemendikdasmen) yang menekankan tiga prinsip — **berkesadaran (mindful),
+bermakna (meaningful), dan menggembirakan (joyful)** — dengan pengalaman belajar
+**memahami → mengaplikasi → merefleksi**.
+
+| Prinsip Pembelajaran Mendalam | Wujud di GatraVolt |
+|---|---|
+| **Menggembirakan (joyful)** | Pertarungan MOBA 3v3, knockout, ultimate, dan teman sebaya. Belajar terasa seperti bermain, bukan tugas tambahan. |
+| **Bermakna (meaningful)** | Konsep fisika punya akibat nyata dan langsung: rumus momentum benar-benar menghancurkan menara; soal salah benar-benar memperlambatmu. Aplikasi konsep, bukan hafalan. |
+| **Berkesadaran (mindful)** | Tiga tingkat soal memilih, penjelasan jawaban, modul Materi sebelum berlatih, dan kuis hidup kembali yang menuntut pemain sadar akan konsep yang salah. |
+| **Memahami → mengaplikasi → merefleksi** | Lebar Materi (memahami) → Latihan & soal dalam (mengaplikasi) → penjelasan jawaban + Latihan Harian (merefleksi). |
+| **Dimensi profil lulusan** | Penalaran kritis dan kolaborasi dilatih lewat pemilihan strategi menyerang menara dan kerja sama 3v3; kemandirian lewat Latihan Harian. |
+| **Pemanfaatan teknologi digital** | PWA/APK, real-time multiplayer, dan Asisten Fisika AI sebagai pendamping di luar jam pelajaran. |
+
+### Dasar data
+
+| Data | Angka | Sumber |
+|---|---|---|
+| Skor literasi sains Indonesia, PISA 2022 | 383 poin (level 1a); OECD ~485 | OECD/PISA 2022 |
+| Siswa mencapai kompetensi minimum (level 2) sains | 36,81% (≈63% di bawahnya) | PISA 2022 (diolah Kompas) |
+| Pemain gim di Indonesia | 154,9 juta, peringkat ke-4 dunia | Komdigi, *Peta Ekosistem Industri Gim Indonesia 2024* |
+| Pemain game online bermain >4 jam/hari | 42,23% | APJII, *Survei Penetrasi & Perilaku Internet 2023* |
+| Perkiraan adiksi game pada pelajar Indonesia | ≈10,15% | Jurnal Keperawatan (Unpad) |
+| Efektivitas serious game | Lebih efektif & lebih memotivasi daripada pengajaran konvensional (k=77, N=5.547) | Wouters dkk., *Journal of Educational Psychology* 105(2), 2013 |
+| Prinsip Pembelajaran Mendalam | Berkesadaran, bermakna, menggembirakan | Kemendikdasmen, *Sistem Informasi Kurikulum Nasional* |
+
+**Sumber lengkap:**
+[OECD PISA 2022](https://www.oecd.org/en/publications/pisa-2022-results-volume-i-and-ii-country-notes_ed6fbcc5-en/indonesia_c2e1ae0e-en.html) ·
+[PISA 2022 (Kompas.id)](https://www.kompas.id/artikel/adakah-perbaikan-skor-pisa-indonesia) ·
+[Pemain gim Indonesia 154,9 juta (Kompas.id, Komdigi 2024)](https://www.kompas.id/artikel/indonesia-jadi-pasar-semata-industri-game-lokal-butuh-dukungan) ·
+[42,23% main >4 jam/hari (APJII 2023)](https://jateng.tribunnews.com/2023/12/18/wasapadai-anak-anda-terlalu-lama-main-game-online-bisa-depresi-dan-berkata-kotor) ·
+[Adiksi game pelajar ≈10,15% (Jurnal Keperawatan Unpad)](https://jurnal.unpad.ac.id/jnc/article/view/39044) ·
+[Wouters dkk. 2013](https://psycnet.apa.org/record/2013-03484-001) ·
+[Pembelajaran Mendalam, Kemendikdasmen](https://kurikulum.kemendikdasmen.go.id/pembelajaran-mendalam)
+
+### Target pengguna
+
+- **Siswa SMA (utama)**, khususnya kelas yang sedang mempelajari momentum,
+  impuls, tumbukan, dan proyektil — termasuk yang merasa fisika sulit atau bosan.
+- **Guru fisika SMA** yang mencari media ajar interaktif, bisa dipakai untuk
+  pengayaan, tugas bermain, atau Latihan Harian di kelas.
+- **Pemain umum penggemar MOBA** yang ingin mencoba tanpa latar belakang fisika
+  mendalam (tiga tingkat soal membuat pemula tetap bisa bermain).
 
 <p align="center">
   <a href="https://gatravolt.onrender.com">
