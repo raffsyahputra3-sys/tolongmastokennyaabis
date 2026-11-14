@@ -66,10 +66,22 @@ jobs:
           tag_name: android-latest
           name: Android APK terbaru
           body: |
-            APK Android terbaru untuk GatraVolt.
+            ## GatraVolt - Android APK
 
-            Pasang di Android (izinkan "Instal aplikasi tidak dikenal"), lalu isi
-            alamat server online saat aplikasi pertama dibuka.
+            **Unduh:** [GatraVolt.apk](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/GatraVolt.apk)
+
+            Game pembelajaran fisika berbasis MOBA (3v3 real-time). Versi Android
+            dari <https://gatravolt.onrender.com>.
+
+            ### Cara pasang
+            1. Unduh `GatraVolt.apk` dari tautan di atas (di HP Android).
+            2. Buka berkasnya, lalu izinkan **Instal aplikasi tidak dikenal** bila diminta.
+            3. Jalankan **GatraVolt**. Server bawaan: `wss://gatravolt.onrender.com`.
+            4. Alamat server bisa diganti lewat ikon gerigi di layar awal.
+
+            - Ukuran kurang lebih 5,7 MB, debug-signed, cukup untuk dipasang manual.
+            - Minimal Android 7.0 (API 24). Layar terkunci landscape.
+            - Butuh koneksi internet untuk bermain online.
 
             Build otomatis dari commit ${{ github.sha }}.
           files: GatraVolt.apk

@@ -465,11 +465,21 @@ Hasil (MVP dan papan skor, tombol **Main Lagi** di kanan-bawah).
 
 ## APK Android native (Capacitor)
 
-APK siap pasang tersedia di
-[Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)
-(tag `android-latest`). Build
-otomatis lewat GitHub Actions (`.github/workflows/android.yml`) setiap push ke
-`main`; hasilnya juga diunggah sebagai artifact **GatraVolt-apk**.
+### Unduh APK
+
+**⬇️ [Unduh GatraVolt.apk (Android)](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/GatraVolt.apk)**
+
+- Ukuran ± 5,7 MB (debug-signed, cukup untuk dipasang manual).
+- Halaman rilis: [Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)
+  (tag `android-latest`) — di sana juga ada tautan unduhan yang sama.
+- Build otomatis lewat GitHub Actions (`.github/workflows/android.yml`) setiap
+  push ke `main`; aset `GatraVolt.apk` selalu ditimpa dengan versi terbaru, dan
+  hasilnya juga diunggah sebagai artifact **GatraVolt-apk**.
+
+Cara pasang: unduh berkasnya di HP Android → buka (aktifkan **Izinkan instal
+dari sumber ini** bila diminta) → jalankan **GatraVolt** → pilih server
+`wss://gatravolt.onrender.com` atau tempel alamat server sendiri lewat ikon
+gerigi.
 
 Proyek Android lengkap ada di `android/` (paket `com.logicodix.momentumarena`).
 Aplikasi membungkus client web di WebView native: layar penuh immersive, terkunci
