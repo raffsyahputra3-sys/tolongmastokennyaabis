@@ -137,8 +137,10 @@ di `shared/turretQuestions.js`.
 
 ## Belajar fisika: Materi, Latihan, dan Latihan Harian
 
-Di lobi ada panel **BELAJAR FISIKA** dengan tombol **MATERI** dan **LATIHAN**.
-Ketiganya berjalan di client dan tidak mengubah jalannya pertandingan.
+Panel **BELAJAR FISIKA** ada di posisi paling atas lobi, berisi tombol **MATERI**,
+**LATIHAN**, dan **🤖 ASISTEN FISIKA**. Semuanya berjalan di client dan tidak
+mengubah jalannya pertandingan. Tingkat soal (Pemula / Menengah / Mahir) diatur
+dari ikon gerigi > **Pengaturan > TINGKAT FISIKA**.
 
 | Fitur | Isi |
 |---|---|
@@ -167,6 +169,10 @@ Asisten memanggil model **Qwen VL (OCR)** lewat gateway Helipod, tetapi:
   ada tombol **Jawab ulang** untuk memaksa panggilan baru.
 - Pertanyaan tak jelas dijawab lokal tanpa API. Mode debug: buka
   `?asistenDebug=1`, atau set `localStorage["fisbot:debug"] = "1"`.
+- Panel asisten memanggil `/api/asisten` di server game. Di **APK native** halaman
+  dilayani dari perangkat (`http://localhost`), jadi client memakai alamat absolut
+  dari `serverHttpBase()` di `client/net.js`, dan server mengirim header CORS
+  sekaligus menjawab preflight `OPTIONS`.
 
 **Cara membuka:** avatar rubah **Fisiko** di lobi (pojok kanan-bawah panggung
 hero, di dekat karakter game) atau tombol **🤖 ASISTEN FISIKA** pada panel
@@ -220,13 +226,14 @@ seperti systemd atau container orchestrator.
 
 1. Tekan tombol **Download APK Android** di bagian atas README (atau buka halaman
    [Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)).
-2. Buka file `fisikAsik.apk` di HP. Bila muncul peringatan, aktifkan **Izinkan
+2. **Hapus dulu** aplikasi Logicodix yang lama. Kunci debug dibuat ulang di setiap
+   build, jadi memasang di atas versi lama akan gagal (*"App not installed"*).
+3. Buka file `fisikAsik.apk` di HP. Bila muncul peringatan, aktifkan **Izinkan
    dari sumber ini** / **Instal aplikasi tidak dikenal**.
-3. Buka aplikasi **Logicodix**. Saat diminta **alamat server**, tempel alamat
-   server online dari bagian [Server online](#server-online) (boleh diawali
-   `https://` atau `wss://`).
-4. Masuk lewat **CARI LAWAN** (matchmaking) atau **BUAT ROOM** lalu bagikan kode
-   ke teman. Alamat server tersimpan dan bisa diubah lewat ikon **gerigi**.
+4. Buka aplikasi **Logicodix**. Alamat server online sudah terisi otomatis; ubah
+   lewat ikon **gerigi** bila perlu.
+5. Masuk lewat **CARI LAWAN** (matchmaking) atau **BUAT ROOM** lalu bagikan kode
+   ke teman.
 
 APK di-build otomatis oleh GitHub Actions (debug-signed, cukup untuk dipasang
 manual di HP). iPhone tidak bisa memasang APK; gunakan PWA di bawah.
