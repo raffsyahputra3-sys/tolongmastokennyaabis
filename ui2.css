@@ -1847,7 +1847,7 @@ body.native #fullscreenBtn {
   gap: 6px;
 }
 
-.duel-options .clash-option {
+.duel-options .duel-option {
   min-height: 40px;
   padding: 5px 8px;
   font-size: 12px;
@@ -1890,7 +1890,7 @@ body.native #fullscreenBtn {
     font-size: 15px;
   }
 
-  .duel-options .clash-option {
+  .duel-options .duel-option {
     min-height: 36px;
   }
 }
@@ -2888,10 +2888,9 @@ body.native #fullscreenBtn {
   display: none;
 }
 
-/* selama duel, skor/objektif/Clash di tengah atas disembunyikan agar kartu tidak menimpanya */
+/* selama duel, skor/objektif di tengah atas disembunyikan agar kartu tidak menimpanya */
 .duel-open .score-line,
 .duel-open .objective-status,
-.duel-open .next-clash {
   visibility: hidden;
 }
 
@@ -2913,7 +2912,7 @@ body.native #fullscreenBtn {
     display: none;
   }
 
-  .duel-options .clash-option {
+  .duel-options .duel-option {
     justify-content: center;
     text-align: center;
     line-height: 1.1;
@@ -2943,7 +2942,7 @@ body.native #fullscreenBtn {
     gap: 4px;
   }
 
-  .duel-options .clash-option {
+  .duel-options .duel-option {
     min-height: 30px;
     gap: 5px;
     padding: 3px 5px;

@@ -14,7 +14,7 @@ import { ArenaRenderer, drawHeroPortrait } from "./render.js";
 import { ArenaRenderer3D, drawHeroPortrait3D, isWebGLAvailable } from "./render3d.js";
 
 const drawPortrait = isWebGLAvailable() ? drawHeroPortrait3D : drawHeroPortrait;
-import { DIFFICULTY_NAMES, HERO_ORDER, MATCH, SKILL_LEVELS } from "../shared/constants.js";
+import { DIFFICULTY_NAMES, HERO_ORDER, MATCH, REVIVE, SKILL_LEVELS } from "../shared/constants.js";
 import { getHero } from "../shared/heroes.js";
 
 const $ = (id) => document.getElementById(id);
@@ -68,13 +68,13 @@ const els = {
   enemyStatus: $("enemyStatus"),
   matchTimer: $("matchTimer"),
   objectiveStatus: $("objectiveStatus"),
-  nextClash: $("nextClash"),
   towerStatusBlue: $("towerStatusBlue"),
   towerStatusRed: $("towerStatusRed"),
   matchLevel: $("matchLevel"),
   eventFeed: $("eventFeed"),
   respawnBanner: $("respawnBanner"),
-  clashOverlay: $("clashOverlay"),
+  respawnBannerText: $("respawnBannerText"),
+  reviveBtn: $("reviveBtn"),
   duelCard: $("duelCard"),
   combatAlerts: $("combatAlerts"),
   hitVignette: $("hitVignette"),
@@ -95,16 +95,6 @@ const els = {
   duelResult: $("duelResult"),
   duelResultTitle: $("duelResultTitle"),
   duelExplanation: $("duelExplanation"),
-  clashCategory: $("clashCategory"),
-  clashTimer: $("clashTimer"),
-  clashTimerFill: $("clashTimerFill"),
-  clashPrompt: $("clashPrompt"),
-  clashOptions: $("clashOptions"),
-  clashSelfStatus: $("clashSelfStatus"),
-  clashEnemyStatus: $("clashEnemyStatus"),
-  clashResult: $("clashResult"),
-  clashResultTitle: $("clashResultTitle"),
-  clashExplanation: $("clashExplanation"),
   movePad: $("movePad"),
   moveKnob: $("moveKnob"),
   playerStatusChips: $("playerStatusChips"),
@@ -191,9 +181,9 @@ const STATUS_LABELS = {
   wrong: "SALAH",
 };
 const ACK_ERRORS = {
-  timeout: "Waktu Clash sudah habis.",
-  locked: "Kamu sudah menjawab Clash ini.",
-  "clash-ended": "Clash ini sudah selesai.",
+  timeout: "Waktu menjawab sudah habis.",
+  locked: "Kamu sudah menjawab soal ini.",
+  ended: "Kuis ini sudah selesai.",
   option: "Pilihan jawaban tidak valid.",
   invalid: "Jawaban tidak dapat diproses.",
 };
@@ -242,7 +232,6 @@ const ui = {
   lobby: null,
   state: null,
   matchResult: null,
-  activeClash: null,
   activeDuel: null,
   showcaseAt: null,
   hitSeen: new Map(),
@@ -479,11 +468,7 @@ function handleMessage(message) {
     case "state":
       handleState(message);
       break;
-    case "clashStart":
-      if (message.clash) syncClash(message.clash);
       break;
-    case "clashResult":
-      if (message.clash) syncClash(message.clash);
       break;
     case "duelStart":
       if (message.duel) showDuel(message.duel);
@@ -625,8 +610,6 @@ function handleState(message) {
   updateHud(message);
   triggerUltimateFx(message);
   handleCombatEvents(message);
-  if (message.clash) syncClash(message.clash);
-  else hideClash();
 }
 
 // ---------------------------------------------------------------- notifikasi serangan
@@ -748,40 +731,12 @@ function enemyPlayer(state = ui.state) {
 }
 
 function handleQuizAck(message) {
-  if (String(message.clashId ?? "").startsWith("duel-")) {
-    handleDuelAck(message);
-    return;
-  }
-  if (!message.accepted) {
-    ui.answered = false;
-    ui.selectedOption = null;
-    if (ui.activeClash) {
-      ui.activeClash.answerStatus[ui.selfIndex] = "waiting";
-      updateClash(ui.activeClash);
-    }
-    toast(ACK_ERRORS[message.reason] || "Jawaban ditolak server.", "bad");
-    return;
-  }
-  if (message.correct) {
-    audio.correct();
-    if (ui.activeClash) {
-      ui.activeClash.answerStatus[ui.selfIndex] = "correct";
-      updateClash(ui.activeClash);
-    }
-  } else {
-    audio.wrong();
-    toast("Jawaban salah. Momentum Loss aktif.", "bad");
-    if (ui.activeClash) {
-      ui.activeClash.answerStatus[ui.selfIndex] = "locked";
-      updateClash(ui.activeClash);
-    }
-  }
+  handleDuelAck(message);
 }
 
 function handleMatchEnd(message) {
   ui.matchResult = message;
   input.setEnabled(false);
-  hideClash();
   hideDuel();
   const self = Array.isArray(message.players)
     ? message.players.find((player) => player.id === ui.selfId)
@@ -869,17 +824,14 @@ function resetMatchUI() {
   ui.matchResult = null;
   ui.lobby = null;
   ui.resultVisible = false;
-  ui.activeClash = null;
   ui.answered = false;
   ui.selectedOption = null;
   ui.lastFeedKey = "";
-  hideClash();
   hideDuel();
   els.resultOverlay.classList.add("hidden");
   els.reconnectOverlay.classList.add("hidden");
   els.eventFeed.replaceChildren();
   els.playerStatusChips.replaceChildren();
-  els.clashOptions.replaceChildren();
   els.respawnBanner.classList.add("hidden");
   els.gameNotice.classList.add("hidden");
   bodyInMatch(false);
@@ -907,19 +859,26 @@ function updateHud(state) {
     els.selfPanel.classList.toggle("low", self.alive && hpRatio <= 0.3);
     els.selfStats.textContent = `${self.stats.kills} KO / ${self.stats.deaths} MATI`;
     els.selfStatus.textContent = self.alive
-      ? self.edge
-        ? `EDGE ${Math.ceil(self.edgeRemaining / 1000)}s`
-        : self.slowed
-          ? "MOMENTUM LOSS"
-          : "SIAP"
-      : `RESPAWN ${Math.ceil(self.respawnIn / 1000)}`;
+      ? self.slowed
+        ? "MOMENTUM LOSS"
+        : "SIAP"
+      : self.needsRevive
+        ? `JAWAB ${REVIVE.questions} SOAL UNTUK HIDUP`
+        : `RESPAWN ${Math.ceil(self.respawnIn / 1000)}`;
     updateAbilities(self);
     updateStatusChips(self);
     if (!self.alive) {
-      els.respawnBanner.textContent = `RESPAWN ${Math.max(1, Math.ceil(self.respawnIn / 1000))}`;
+      // Pemain manusia tidak pakai timer: hidup lewat kuis 2 soal.
+      els.respawnBannerText.textContent = self.needsRevive
+        ? `JAWAB ${REVIVE.questions} SOAL UNTUK HIDUP (${Math.min(self.reviveProgress ?? 0, REVIVE.questions)}/${REVIVE.questions})`
+        : `RESPAWN ${Math.max(1, Math.ceil(self.respawnIn / 1000))}`;
+      els.respawnBanner.classList.toggle("revive", Boolean(self.needsRevive));
+      els.reviveBtn.classList.toggle("hidden", !self.needsRevive);
       els.respawnBanner.classList.remove("hidden");
     } else {
       els.respawnBanner.classList.add("hidden");
+      els.respawnBanner.classList.remove("revive");
+      els.reviveBtn.classList.add("hidden");
     }
     const enemyNexus = state.nexuses?.find((nexus) => nexus.team !== self.slot);
     const enemyTowersLeft = state.towers?.filter((tower) => tower.team !== self.slot && tower.alive).length ?? 0;
@@ -953,17 +912,6 @@ function updateHud(state) {
   els.scoreRed.textContent = String(kills[1]);
 
   els.matchTimer.textContent = formatClock(state.timeLeft ?? MATCH.duration);
-
-  if (state.clash) {
-    els.nextClash.textContent = "CLASH AKTIF";
-    els.nextClash.classList.add("urgent");
-  } else if (Number.isFinite(state.nextClashIn)) {
-    els.nextClash.textContent = `CLASH ${formatShort(state.nextClashIn)}`;
-    els.nextClash.classList.toggle("urgent", state.nextClashIn <= 5);
-  } else {
-    els.nextClash.textContent = `CLASH ${state.clashCount ?? 0}`;
-    els.nextClash.classList.remove("urgent");
-  }
 
   updateTower(els.towerStatusBlue, teamTowers(state, 0), "MUARO JAMBI");
   updateTower(els.towerStatusRed, teamTowers(state, 1), "KOTAGEDE");
@@ -1015,7 +963,6 @@ function updateAbilities(self) {
   els.superBtn.style.setProperty("--charge", String(Math.round(superCharge * 100)));
   els.superBtn.classList.toggle("ready", self.super >= 100);
   const superLabel = els.superBtn.querySelector(".super-ready-label");
-  if (superLabel) superLabel.textContent = self.insight > 0 ? "EMPOWERED" : "SUPER";
   const pips = [...els.ammoPips.querySelectorAll("i")];
   pips.forEach((pip, index) => pip.classList.toggle("full", index < self.ammo));
 }
@@ -1035,12 +982,9 @@ function setCooldown(ability, remaining, total) {
 
 function updateStatusChips(self) {
   const chips = [];
-  if (self.edge) chips.push(["edge", `PHYSICS EDGE ${Math.ceil(self.edgeRemaining / 1000)}s`]);
-  if (self.duelEdge) chips.push(["edge", `EDGE KECIL ${Math.ceil(self.duelEdgeRemaining / 1000)}s`]);
   if (self.slowed) chips.push(["slow", `MOMENTUM LOSS ${Math.ceil(self.slowRemaining / 1000)}s`]);
-  if (self.insight > 0) chips.push(["insight", `INSIGHT x${self.insight}`]);
   if (self.shielded) chips.push(["", `SHIELD ${Math.round(self.shield)}`]);
-  if (self.reflect) chips.push(["insight", "REFLECT"]);
+  if (self.reflect) chips.push(["", "REFLECT"]);
   if (chips.length === 0) chips.push(["", "MOMENTUM STABIL"]);
   els.playerStatusChips.replaceChildren(
     ...chips.map(([className, text]) => {
@@ -1052,140 +996,6 @@ function updateStatusChips(self) {
   );
 }
 
-function syncClash(clash) {
-  if (!clash) {
-    hideClash();
-    return;
-  }
-  const isNew = !ui.activeClash || ui.activeClash.id !== clash.id;
-  ui.activeClash = { ...clash, answerStatus: { ...(clash.answerStatus ?? {}) } };
-  if (isNew) {
-    ui.answered = (clash.answerStatus?.[ui.selfIndex] ?? "waiting") !== "waiting";
-    ui.selectedOption = null;
-    populateClash(clash);
-    els.clashOverlay.classList.remove("hidden");
-    if (clash.phase === "active") audio.clashStart();
-  }
-  updateClash(ui.activeClash);
-}
-
-function populateClash(clash) {
-  els.clashPrompt.textContent = clash.prompt;
-  els.clashCategory.textContent = upper(clash.category);
-  const fragment = document.createDocumentFragment();
-  clash.options.forEach((option, index) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "clash-option";
-    button.dataset.index = String(index);
-    const key = document.createElement("span");
-    key.className = "option-key";
-    key.textContent = String(index + 1);
-    const label = document.createElement("span");
-    label.textContent = option;
-    button.append(key, label);
-    button.addEventListener("click", () => answerClash(index));
-    fragment.append(button);
-  });
-  els.clashOptions.replaceChildren(fragment);
-}
-
-function updateClash(clash) {
-  els.clashPrompt.textContent = clash.prompt;
-  els.clashCategory.textContent = upper(clash.category);
-  const selfStatus = clash.answerStatus?.[ui.selfIndex] ?? "waiting";
-  const rivals = Object.entries(clash.answerStatus ?? {}).filter(([index]) => Math.floor(Number(index) / 3) !== ui.selfSlot);
-  const rivalsDone = rivals.filter(([, status]) => status !== "waiting").length;
-  const mates = Object.entries(clash.answerStatus ?? {}).filter(
-    ([index]) => Math.floor(Number(index) / 3) === ui.selfSlot && Number(index) !== ui.selfIndex,
-  );
-  const matesDone = mates.filter(([, status]) => status !== "waiting").length;
-  els.clashSelfStatus.textContent = `KAMU: ${STATUS_LABELS[selfStatus] ?? upper(selfStatus)}`;
-  els.clashEnemyStatus.textContent = `LAWAN: ${rivalsDone}/${rivals.length} MENJAWAB · REKAN: ${matesDone}/${mates.length}`;
-
-  const active = clash.phase === "active";
-  const options = [...els.clashOptions.querySelectorAll(".clash-option")];
-  options.forEach((button, index) => {
-    button.classList.remove("correct", "wrong", "dimmed");
-    const locked = bootLocked(clash, active);
-    button.disabled = locked;
-    if (!active) {
-      const correctIndex = clash.correctIndex;
-      if (index === correctIndex) button.classList.add("correct");
-      else if (ui.selectedOption === index) button.classList.add("wrong");
-      else button.classList.add("dimmed");
-    }
-  });
-
-  if (!active) {
-    els.clashTimer.textContent = "0.0";
-    els.clashTimerFill.style.width = "0%";
-    const teamWon = clash.winnerSlot === ui.selfSlot;
-    const type = teamWon ? "correct" : "wrong";
-    els.clashResult.classList.remove("hidden");
-    els.clashResult.classList.toggle("lost", type !== "correct");
-    els.clashResultTitle.textContent =
-      clash.winnerIndex === ui.selfIndex
-        ? "BENAR — PHYSICS EDGE!"
-        : teamWon
-          ? "REKAN TIMMU BENAR — EDGE UNTUK TIM!"
-          : clash.winnerSlot !== null
-            ? "LAWAN LEBIH CEPAT"
-          : selfStatus === "locked"
-            ? "TIDAK ADA PEMENANG"
-            : "WAKTU HABIS";
-    els.clashExplanation.textContent = clash.explanation || "";
-  } else {
-    els.clashResult.classList.add("hidden");
-  }
-}
-
-function bootLocked(clash, active) {
-  if (!active) return true;
-  if (ui.answered) return true;
-  const status = clash.answerStatus?.[ui.selfIndex] ?? "waiting";
-  return status !== "waiting";
-}
-
-function tickClashTimer() {
-  tickDuelTimer();
-  const clash = ui.activeClash;
-  if (!clash || els.clashOverlay.classList.contains("hidden")) return;
-  if (clash.phase !== "active") {
-    els.clashTimer.textContent = "0.0";
-    els.clashTimerFill.style.width = "0%";
-    return;
-  }
-  const remaining = Math.max(0, clash.endsAt - serverNow());
-  const total = Math.max(1, clash.endsAt - clash.startedAt);
-  els.clashTimer.textContent = (remaining / 1000).toFixed(1);
-  els.clashTimerFill.style.width = `${clamp01(remaining / total) * 100}%`;
-}
-
-function hideClash() {
-  if (ui.activeClash) {
-    ui.activeClash = null;
-  }
-  ui.answered = false;
-  ui.selectedOption = null;
-  els.clashOverlay.classList.add("hidden");
-  els.clashOptions.replaceChildren();
-  els.clashResult.classList.add("hidden");
-}
-
-function answerClash(index) {
-  const clash = ui.activeClash;
-  if (!clash || clash.phase !== "active" || ui.answered) return;
-  if (!client?.send({ type: "quizAnswer", clashId: clash.id, option: index })) {
-    toast("Tidak terhubung ke server.", "bad");
-    return;
-  }
-  ui.answered = true;
-  ui.selectedOption = index;
-  clash.answerStatus[ui.selfIndex] = "locked";
-  updateClash(clash);
-}
-
 // ---------------------------------------------------------------- duel jawab
 
 const DUEL_RESULT_MS = 1500;
@@ -1194,7 +1004,7 @@ let duelHideTimer = 0;
 function exitDuel() {
   const duel = ui.activeDuel;
   if (!duel || duel.resolved) return;
-  client?.send({ type: "duelExit", clashId: duel.id });
+  client?.send({ type: "duelExit", duelId: duel.id });
   duel.resolved = true;
   hideDuel();
 }
@@ -1205,16 +1015,22 @@ function showDuel(duel) {
   if (els.duelExitBtn) els.duelExitBtn.onclick = exitDuel;
   ui.activeDuel = { ...duel, answered: false, selected: null };
   els.duelCard.classList.remove("hidden");
-  els.duelCard.classList.toggle("defend", duel.role === "victim");
-  els.duelRole.textContent = duel.role === "attacker" ? "SERANG" : "TANGKIS";
-  els.duelCategory.textContent = upper(duel.category);
+  els.duelCard.classList.toggle("revive", duel.kind === "revive");
+  if (duel.kind === "revive") {
+    const step = Math.min((duel.progress ?? 0) + 1, duel.target ?? REVIVE.questions);
+    els.duelRole.textContent = "HIDUP KEMBALI";
+    els.duelCategory.textContent = `SOAL ${step}/${duel.target ?? REVIVE.questions}`;
+  } else {
+    els.duelRole.textContent = "SERANG MENARA";
+    els.duelCategory.textContent = upper(duel.category);
+  }
   els.duelPrompt.textContent = duel.prompt;
   els.duelResult.classList.add("hidden");
   const fragment = document.createDocumentFragment();
   duel.options.forEach((option, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "clash-option";
+    button.className = "duel-option";
     button.dataset.index = String(index);
     const key = document.createElement("span");
     key.className = "option-key";
@@ -1226,20 +1042,20 @@ function showDuel(duel) {
     fragment.append(button);
   });
   els.duelOptions.replaceChildren(fragment);
-  audio.clashStart();
+  audio.quizStart();
   tickDuelTimer();
 }
 
 function answerDuel(index) {
   const duel = ui.activeDuel;
   if (!duel || duel.answered || duel.resolved) return;
-  if (!client?.send({ type: "quizAnswer", clashId: duel.id, option: index })) {
+  if (!client?.send({ type: "quizAnswer", duelId: duel.id, option: index })) {
     toast("Tidak terhubung ke server.", "bad");
     return;
   }
   duel.answered = true;
   duel.selected = index;
-  for (const button of els.duelOptions.querySelectorAll(".clash-option")) {
+  for (const button of els.duelOptions.querySelectorAll(".duel-option")) {
     button.disabled = true;
     button.classList.toggle("dimmed", Number(button.dataset.index) !== index);
   }
@@ -1248,15 +1064,15 @@ function answerDuel(index) {
 function handleDuelAck(message) {
   const duel = ui.activeDuel;
   if (!message.accepted) {
-    if (duel && duel.id === message.clashId && !duel.resolved) {
+    if (duel && duel.id === message.duelId && !duel.resolved) {
       duel.answered = false;
       duel.selected = null;
-      for (const button of els.duelOptions.querySelectorAll(".clash-option")) {
+      for (const button of els.duelOptions.querySelectorAll(".duel-option")) {
         button.disabled = false;
         button.classList.remove("dimmed");
       }
     }
-    if (message.reason !== "clash-ended" && message.reason !== "timeout") {
+    if (message.reason !== "ended" && message.reason !== "timeout") {
       toast(ACK_ERRORS[message.reason] || "Jawaban ditolak server.", "bad");
     }
     return;
@@ -1266,24 +1082,35 @@ function handleDuelAck(message) {
 }
 
 const DUEL_RESULT_TEXT = {
-  attackerWins: { attacker: ["SERANGAN KENA!", true], victim: ["KAMU KALAH CEPAT", false] },
-  victimWins: { attacker: ["SERANGAN GAGAL: LAWAN LEBIH CEPAT", false], victim: ["SERANGAN DITANGKIS! EDGE KECIL", true] },
-  bothFail: { attacker: ["SERANGAN GAGAL", false], victim: ["TIDAK ADA JAWABAN BENAR: MOMENTUM LOSS", false] },
-  cancelled: { attacker: ["DUEL DIBATALKAN", true], victim: ["DUEL DIBATALKAN", true] },
+  attackerWins: { attacker: ["SERANGAN KENA!", true] },
+  bothFail: { attacker: ["SERANGAN GAGAL", false] },
+  cancelled: { attacker: ["DUEL DIBATALKAN", true] },
 };
+
+/** Hasil kuis hidup kembali: benar menambah progres, salah mengulang soal. */
+function reviveResultText(result) {
+  if (result.outcome === "revived") return ["KAMU HIDUP KEMBALI!", true];
+  if (result.outcome === "correct") {
+    const step = Math.min((result.progress ?? 0) + 1, result.target ?? REVIVE.questions);
+    return [`BENAR! SOAL ${step}/${result.target ?? REVIVE.questions}`, true];
+  }
+  if (result.outcome === "wrong") return ["SALAH. COBA LAGI", false];
+  return null;
+}
 
 function showDuelResult(result) {
   const duel = ui.activeDuel;
   if (!duel || duel.id !== result.id) return;
   duel.resolved = true;
-  const [title, good] = DUEL_RESULT_TEXT[result.outcome]?.[result.role] ?? ["DUEL SELESAI", true];
+  const [title, good] = reviveResultText(result) ?? DUEL_RESULT_TEXT[result.outcome]?.[result.role] ?? ["DUEL SELESAI", true];
   els.duelResultTitle.textContent = title;
+  if (result.outcome === "revived") toast("Kamu hidup kembali!", "good");
   els.duelExplanation.textContent = result.outcome === "cancelled" ? "" : result.explanation || "";
   els.duelResult.classList.toggle("lost", !good);
   els.duelResult.classList.remove("hidden");
   els.duelTimer.textContent = "0.0";
   els.duelTimerFill.style.width = "0%";
-  for (const button of els.duelOptions.querySelectorAll(".clash-option")) {
+  for (const button of els.duelOptions.querySelectorAll(".duel-option")) {
     const index = Number(button.dataset.index);
     button.disabled = true;
     button.classList.remove("correct", "wrong", "dimmed");
@@ -1300,8 +1127,9 @@ function tickDuelTimer() {
   const duel = ui.activeDuel;
   if (!duel || duel.resolved) return;
   if (!duel.endsAt) {
-    els.duelTimer.textContent = "∞";
-    els.duelTimerFill.style.width = "100%";
+    // Kuis hidup kembali tanpa batas waktu: sembunyikan bar timer.
+    els.duelTimer.textContent = "";
+    els.duelTimerFill.style.width = "0%";
     return;
   }
   const remaining = Math.max(0, duel.endsAt - serverNow());
@@ -1315,6 +1143,7 @@ function hideDuel() {
   document.body.classList.remove("duel-open");
   ui.activeDuel = null;
   els.duelCard.classList.add("hidden");
+  els.duelCard.classList.remove("revive");
   els.duelOptions.replaceChildren();
   els.duelResult.classList.add("hidden");
 }
@@ -1322,12 +1151,17 @@ function hideDuel() {
 function handleAction(kind, value) {
   if (kind === "quiz") {
     if (!input.enabled) return;
-    if (ui.activeDuel && els.clashOverlay.classList.contains("hidden")) answerDuel(Number(value));
-    else answerClash(Number(value));
+    if (ui.activeDuel) answerDuel(Number(value));
     return;
   }
   if (!input.enabled) return;
   if (kind === "towerQuiz") {
+    // Saat tumbang, tombol SOAL / F berubah jadi "minta kuis hidup kembali".
+    const self = selfPlayer();
+    if (self && !self.alive && self.needsRevive) {
+      if (!client?.send({ type: "revive" })) toast("Tidak terhubung ke server.", "bad");
+      return;
+    }
     // serang jawab soal pada menara: damage besar kalau jawabannya benar
     if (!client?.send({ type: "towerQuiz" })) toast("Tidak terhubung ke server.", "bad");
     return;
@@ -1436,16 +1270,16 @@ function showResult(message) {
 
   const players = [...(message.players ?? [])].sort((a, b) => a.slot - b.slot || (a.index ?? 0) - (b.index ?? 0));
   const self = players.find((player) => player.id === ui.selfId) ?? null;
-  const score = (player) => player.kills * 3 + player.clashWins * 2 + player.correct + player.cs * 0.1 - player.deaths;
+  const score = (player) => player.kills * 3 + player.correct + player.cs * 0.1 - player.deaths;
   const pool = draw ? players : players.filter((player) => player.slot === message.winnerSlot);
   const mvp = [...pool].sort((a, b) => score(b) - score(a))[0] ?? null;
   ui.mvpHeroId = mvp?.heroId ?? null;
   els.mvpName.textContent = mvp ? `${mvp.name} · ${getHero(mvp.heroId).name}` : "-";
-  els.mvpStats.textContent = mvp ? `${mvp.kills}/${mvp.deaths} KO · CS ${mvp.cs} · Clash ${mvp.clashWins}` : "-";
+  els.mvpStats.textContent = mvp ? `${mvp.kills}/${mvp.deaths} KO · CS ${mvp.cs}` : "-";
 
   const head = document.createElement("div");
   head.className = "v2-board-head";
-  for (const label of ["", "PEMAIN", "K", "D", "CS", "CLASH", "BENAR"]) {
+  for (const label of ["", "PEMAIN", "K", "D", "CS", "BENAR"]) {
     const cell = document.createElement("span");
     cell.textContent = label;
     head.append(cell);
@@ -1458,7 +1292,7 @@ function showResult(message) {
     const name = document.createElement("strong");
     name.textContent = `${player.name} · ${getHero(player.heroId).name}`;
     row.append(thumb, name);
-    for (const value of [player.kills, player.deaths, player.cs, player.clashWins, player.correct]) {
+    for (const value of [player.kills, player.deaths, player.cs, player.correct]) {
       const cell = document.createElement("span");
       cell.className = "num";
       cell.textContent = String(value);
@@ -2028,11 +1862,11 @@ function updateSelectTimer() {
 const TIPS = [
   "Menara dalam kebal sampai menara luar di lane yang sama hancur.",
   "Nexus baru bisa diserang setelah kedua menara satu lane runtuh.",
-  "Physics Clash: jawab soal fisika paling cepat untuk Physics Edge bagi timmu.",
+  "Bidik menara lawan lalu tekan SERANG SOAL untuk menyerang dengan soal fisika.",
   "Minion memberi XP. Jangan biarkan satu lane kosong terlalu lama.",
   "Jangan menyerang menara tanpa minion di dekatmu, menara menembak hero.",
   "Pakai Dash untuk menabrak lawan dan menghancurkan pagar bambu.",
-  "Super terisi saat memberi damage dan menang Clash. Simpan untuk team fight.",
+  "Saat tumbang, jawab 2 soal fisika untuk hidup kembali.",
 ];
 
 function enterLoading() {
@@ -2225,6 +2059,12 @@ function bindEvents() {
   });
 
   els.showcaseBtn.addEventListener("click", () => playShowcase({ manual: true }));
+
+  els.reviveBtn.addEventListener("click", () => {
+    // Tombol "JAWAB SOAL" di banner tumbang: minta kuis hidup kembali.
+    audio.click();
+    if (!client?.send({ type: "revive" })) toast("Tidak terhubung ke server.", "bad");
+  });
 
   els.autoAimToggle.addEventListener("click", () => {
     ui.autoAim = !ui.autoAim;
@@ -2438,7 +2278,7 @@ function startFrames() {
   function frame(now) {
     requestAnimationFrame(frame);
     if (document.hidden) return;
-    tickClashTimer();
+    tickDuelTimer();
     const inGame = ui.screen === "game";
     if (screenFx.active !== inGame) screenFx.setActive(inGame);
     screenFx.frame(now);

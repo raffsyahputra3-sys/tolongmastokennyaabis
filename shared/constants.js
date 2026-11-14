@@ -36,37 +36,16 @@ export const MATCH = Object.freeze({
   maxProjectiles: 220,
 });
 
-export const CLASH = Object.freeze({
-  firstAt: 20,
-  interval: 35,
-  duration: 5,
-  resultDisplay: 2.6,
-  slowFactor: 0.18,
-  edgeDuration: 10,
-  lossDuration: 5,
-  lossSpeed: 0.9,
-  edgeDamage: 1.15,
-  edgeKnockback: 1.35,
-});
-
 /**
- * Duel jawab: saat hero menyerang hero lawan dalam jarak serang, keduanya
- * berebut menjawab soal singkat. Penyerang yang kalah cepat-jawab gagal menyerang.
- * Semua angka bisa di-tweak tanpa mengubah logika.
+ * Kuis jawab (satu-satunya jalan soal muncul):
+ * - kind "tower": dipicu pemain lewat aksi SERANG SOAL (F / tombol SOAL) saat
+ *   membidik menara lawan => damage besar.
+ * - kind "revive": dipicu pemain yang tumbang (lihat REVIVE).
+ * Angka di sini bisa di-tweak tanpa mengubah logika.
  */
 export const DUEL = Object.freeze({
-  enabled: true,
-  range: 230,
-  aimCone: 0.6,
-  duration: 3,
-  pairCooldown: 3,
-  immunity: 2,
-  edgeDuration: 3,
-  edgeDamage: 1.05,
   attackerLossDuration: 2,
   attackerLossSpeed: 0.95,
-  victimLossDuration: 2,
-  victimLossSpeed: 0.9,
   botDelayMin: 900,
   botDelayMax: 2700,
 });
@@ -76,7 +55,6 @@ export const COMBAT = Object.freeze({
   reloadTime: 1.25,
   superMax: 100,
   superPerDamage: 1.6,
-  superPerClash: 45,
   superPerTakedown: 35,
   maxShield: 260,
 });
@@ -89,6 +67,17 @@ export const COMBAT = Object.freeze({
 export const TURRET = Object.freeze({
   normalMult: 0.35,
   normalMin: 1,
+});
+
+/**
+ * Respawn pemain manusia tanpa timer: hidup kembali setelah menjawab
+ * REVIVE.questions soal dengan benar (kuis tanpa batas waktu). Bot dan pemain
+ * yang terputus (AI takeover) tetap memakai MATCH.respawn.
+ */
+export const REVIVE = Object.freeze({
+  questions: 2,
+  nextQuestionDelay: 2400,
+  questionLevel: "pemula",
 });
 
 export const INPUT = Object.freeze({
@@ -246,7 +235,6 @@ export const MINION = Object.freeze({
 
 export const SCORE = Object.freeze({
   kill: 100,
-  clashWin: 50,
   correct: 10,
   tower: 180,
   minute: 0,

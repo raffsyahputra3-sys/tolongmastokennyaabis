@@ -106,7 +106,7 @@ export class AudioEngine {
     this.noise({ duration: seconds * 0.6, gain: noise * gain, highpass: 220 });
   }
 
-  clashStart() {
+  quizStart() {
     this.tone({ frequency: 880, duration: 0.08, type: "square", gain: 0.07 });
     this.tone({ frequency: 660, duration: 0.08, type: "square", gain: 0.07, delay: 0.1 });
     this.tone({ frequency: 990, duration: 0.15, type: "square", gain: 0.07, delay: 0.2 });

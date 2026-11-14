@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CLASH } from "../shared/constants.js";
 import {
   QUESTIONS,
   QUESTION_CONCEPTS,
@@ -43,8 +42,7 @@ test("ID soal unik dan dapat dicari", () => {
   assert.equal(getQuestionById("tidak-ada"), null);
 });
 
-test("soal Physics Clash singkat: satu baris, satu konsep, bisa dijawab 5 detik", () => {
-  assert.equal(CLASH.duration, 5);
+test("soal kuis singkat: satu baris, satu konsep, cepat dijawab", () => {
   for (const question of QUESTIONS) {
     assert.ok(question.prompt.length <= QUESTION_LIMITS.promptChars, question.id);
     assert.ok(question.prompt.includes("→") && question.prompt.includes("?"), question.id);

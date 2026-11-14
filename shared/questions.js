@@ -335,7 +335,7 @@ export function getQuestionById(id) {
   return QUESTIONS.find((question) => question.id === id) ?? null;
 }
 
-/** Konsep yang boleh muncul di Physics Clash (satu soal = satu konsep). */
+/** Konsep yang boleh muncul di kuis soal (satu soal = satu konsep). */
 export const QUESTION_CONCEPTS = Object.freeze(["Momentum", "Impuls", "Tumbukan", "Proyektil"]);
 
 /** Batas keterbacaan: soal harus terbaca ~2 detik dan terjawab dalam 5 detik. */

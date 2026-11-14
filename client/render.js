@@ -915,7 +915,7 @@ export class ArenaRenderer {
       if (age < 0 || age > 260) continue;
       if (effect.type === "explosion" || effect.type === "shock" || effect.type === "towerDown") {
         shake = Math.max(shake, 7 * (1 - age / 260));
-      } else if (effect.type === "super" || effect.type === "clash") {
+      } else if (effect.type === "super") {
         shake = Math.max(shake, 4 * (1 - age / 260));
       }
     }
@@ -1080,17 +1080,16 @@ export class ArenaRenderer {
     ctx.fillText("MOMENTUM", 1310, 890);
     ctx.restore();
 
-    const zoneActive = Boolean(this.state?.clash);
     ctx.save();
     ctx.translate(ARENA.width / 2, ARENA.height / 2);
-    ctx.strokeStyle = zoneActive ? "rgba(255, 224, 96, 0.65)" : "rgba(255,255,255,0.12)";
-    ctx.lineWidth = zoneActive ? 5 : 2;
-    ctx.setLineDash(zoneActive ? [] : [10, 14]);
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 14]);
     ctx.beginPath();
     ctx.arc(0, 0, 205, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.globalAlpha = zoneActive ? 0.16 + Math.sin(now * 0.006) * 0.06 : 0.05;
+    ctx.globalAlpha = 0.05;
     ctx.fillStyle = "#ffe36d";
     ctx.beginPath();
     ctx.arc(0, 0, 205, 0, Math.PI * 2);
@@ -1753,36 +1752,10 @@ export class ArenaRenderer {
         ctx.fillStyle = teamColor;
         ctx.font = '700 11px "Trebuchet MS", sans-serif';
         ctx.textAlign = "center";
-        ctx.fillText(`${Math.ceil(player.respawnIn / 1000)}`, 0, 4);
+        if (!player.needsRevive) ctx.fillText(`${Math.ceil(player.respawnIn / 1000)}`, 0, 4);
         ctx.textAlign = "left";
         ctx.restore();
         continue;
-      }
-
-      if (player.edge) {
-        ctx.save();
-        ctx.globalAlpha = 0.75;
-        ctx.strokeStyle = "#ffe36d";
-        ctx.lineWidth = 3;
-        ctx.setLineDash([7, 7]);
-        ctx.beginPath();
-        ctx.arc(0, 0, player.radius + 17 + Math.sin(now * 0.006) * 4, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        for (let index = 0; index < 3; index += 1) {
-          const angle = now * 0.002 + (index / 3) * Math.PI * 2;
-          ctx.fillStyle = "#ffe36d";
-          ctx.beginPath();
-          ctx.arc(
-            Math.cos(angle) * (player.radius + 23),
-            Math.sin(angle) * (player.radius + 23),
-            2.5,
-            0,
-            Math.PI * 2,
-          );
-          ctx.fill();
-        }
-        ctx.restore();
       }
 
       if (player.slowed) {
@@ -1948,11 +1921,10 @@ export class ArenaRenderer {
       if (
         effect.type === "shock" ||
         effect.type === "explosion" ||
-        effect.type === "clash" ||
         effect.type === "towerDown"
       ) {
         const color =
-          effect.type === "clash" || effect.type === "towerDown"
+          effect.type === "towerDown"
             ? "#ffe36d"
             : effect.color || "#fef3c7";
         ctx.strokeStyle = color;
@@ -2040,7 +2012,7 @@ export class ArenaRenderer {
         ctx.moveTo(radius * 0.4, -radius * 0.4);
         ctx.lineTo(-radius * 0.4, radius * 0.4);
         ctx.stroke();
-      } else if (effect.type === "edge" || effect.type === "super") {
+      } else if (effect.type === "super") {
         ctx.strokeStyle = effect.color || "#ffe36d";
         ctx.lineWidth = 5;
         ctx.beginPath();

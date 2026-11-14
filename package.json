@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "MOBA fisika real-time dengan Physics Clash dan native desktop client.",
+  "description": "MOBA fisika real-time dengan kuis soal dan native desktop client.",
   "main": "electron/main.js",
   "scripts": {
     "start": "node scripts/start.mjs",

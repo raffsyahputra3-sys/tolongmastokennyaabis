@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Room } from "../server/room.js";
-import { CLASH, MATCH } from "../shared/constants.js";
+import { MATCH } from "../shared/constants.js";
 
 function fakeSocket() {
   return {
@@ -45,107 +45,14 @@ test("dua pemain siap memulai match setelah countdown", () => {
   const { room } = setupRoom(now);
   assert.equal(room.status, "playing");
   assert.ok(room.match);
-  assert.equal(room.match.clashCount, 0);
   assert.equal(room.players.size, 6);
   assert.equal(room.towers.length, 12);
   assert.equal(room.nexuses.length, 2);
 });
 
-test("jawaban salah memberi Momentum Loss dan mengunci pemain", () => {
-  const now = 3_000_000;
-  const { room, playerA } = setupRoom(now);
-  room.startClash(now + 1000);
-  const clash = room.clash;
-  const wrong = (clash.question.answer + 1) % 4;
-  const answerAt = now + 1500;
-
-  const result = room.answerQuiz(playerA.id, clash.id, wrong, answerAt);
-  assert.equal(result.accepted, true);
-  assert.equal(result.correct, false);
-  assert.ok(playerA.slowUntil > answerAt);
-  assert.equal(clash.answerStatus[playerA.index], "locked");
-
-  const duplicate = room.answerQuiz(playerA.id, clash.id, clash.question.answer, answerAt + 100);
-  assert.equal(duplicate.accepted, false);
-  assert.equal(duplicate.reason, "locked");
-});
-
-test("jawaban benar pertama memenangkan Clash dan memberi Physics Edge", () => {
-  const now = 4_000_000;
-  const { room, playerA, playerB } = setupRoom(now);
-  room.startClash(now + 1000);
-  const clash = room.clash;
-
-  const invalid = room.answerQuiz(playerA.id, clash.id, 9, now + 1100);
-  assert.equal(invalid.accepted, false);
-  assert.equal(invalid.reason, "option");
-
-  const stale = room.answerQuiz(playerA.id, "clash-tidak-ada", 0, now + 1100);
-  assert.equal(stale.accepted, false);
-  assert.equal(stale.reason, "clash-ended");
-
-  const wrong = (clash.question.answer + 2) % 4;
-  room.answerQuiz(playerA.id, clash.id, wrong, now + 1200);
-  const winning = room.answerQuiz(playerB.id, clash.id, clash.question.answer, now + 1300);
-
-  assert.equal(winning.accepted, true);
-  assert.equal(winning.correct, true);
-  assert.equal(room.clash.phase, "resolved");
-  assert.equal(room.clash.winnerSlot, playerB.slot);
-  assert.equal(playerB.insight, 1);
-  assert.equal(playerB.super, 100);
-  assert.equal(playerB.stats.clashWins, 1);
-  assert.ok(playerB.edgeUntil > now + 1300);
-  assert.equal(playerA.edgeUntil, 0);
-});
-
-test("kedua jawaban salah menyelesaikan Clash tanpa pemenang", () => {
-  const now = 5_000_000;
-  const { room, playerA, playerB } = setupRoom(now);
-  room.startClash(now + 1000);
-  const clash = room.clash;
-  const wrongA = (clash.question.answer + 1) % 4;
-  const wrongB = (clash.question.answer + 3) % 4;
-
-  room.answerQuiz(playerA.id, clash.id, wrongA, now + 1200);
-  room.answerQuiz(playerB.id, clash.id, wrongB, now + 1300);
-  for (const other of room.players.values()) {
-    if (other.id !== playerA.id && other.id !== playerB.id) room.answerQuiz(other.id, clash.id, wrongA, now + 1400);
-  }
-
-  assert.equal(room.clash.phase, "resolved");
-  assert.equal(room.clash.winnerSlot, null);
-  assert.equal(room.clash.reason, "bothWrong");
-  assert.equal(playerA.edgeUntil, 0);
-  assert.equal(playerB.edgeUntil, 0);
-  assert.ok(playerA.slowUntil > now);
-  assert.ok(playerB.slowUntil > now);
-});
-
-test("jawaban setelah timer habis ditolak", () => {
-  const now = 6_000_000;
-  const { room, playerA } = setupRoom(now);
-  room.startClash(now + 1000);
-  const clash = room.clash;
-  const late = room.answerQuiz(
-    playerA.id,
-    clash.id,
-    clash.question.answer,
-    clash.endsAt + 1,
-  );
-  assert.equal(late.accepted, false);
-  assert.equal(late.reason, "timeout");
-
-  room.tick(clash.endsAt + 2);
-  assert.equal(room.clash.phase, "resolved");
-  assert.equal(room.clash.winnerSlot, null);
-  assert.ok(room.clash.endsAt < CLASH.duration * 1000 + now + 1000 + 1000);
-});
-
 test("disconnect mengaktifkan AI takeover dan reconnect memulihkan kendali", () => {
   const now = 7_000_000;
   const { room, playerA } = setupRoom(now);
-  room.startClash(now + 1000);
 
   room.handleDisconnect(playerA.id, now + 1500);
   assert.equal(playerA.connected, false);
@@ -203,7 +110,7 @@ test("Tali Usus tidak aktif untuk hero lain", () => {
   assert.equal(playerB.shield, 0);
 });
 
-test("Amukan Reog menurunkan damage sebesar 60% (80% saat empowered)", () => {
+test("Amukan Reog menurunkan damage menjadi 40% saat guard aktif", () => {
   const now = 5_000_000;
   const { room, playerA, playerB } = setupRoom(now);
   const t = now + MATCH.countdown * 1000 + 3000;

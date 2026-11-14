@@ -1189,7 +1189,7 @@ function paintMobaGround(g) {
     }
   }
 
-  // alun-alun fisika di tengah (zona Physics Clash)
+  // alun-alun fisika di tengah arena
   g.strokeStyle = "rgba(255,255,255,0.22)";
   g.lineWidth = 3;
   g.setLineDash([10, 14]);
@@ -1623,7 +1623,6 @@ export class ArenaRenderer3D extends ArenaRenderer {
       if (now < (entry.hurtUntil ?? 0)) expression = "hurt";
       else if (now < (entry.shoutUntil ?? 0) || now < (entry.attackUntil ?? 0)) expression = "angry";
       else if (player.hp < player.maxHp * 0.3) expression = "worried";
-      else if (player.edge) expression = "happy";
       const attack = now < (entry.shoutUntil ?? 0) ? 1 : clamp(((entry.attackUntil ?? 0) - now) / 320, 0, 1);
       const speed = clamp(Math.hypot(player.vx, player.vy) / 260, 0, 1);
       animateHero(entry.state, time, { speed, attack, expression });
@@ -1683,8 +1682,7 @@ export class ArenaRenderer3D extends ArenaRenderer {
     this.syncScene(now);
     this.gl.render(this.scene, this.camera);
 
-    // lapisan 2D di atas: zona Clash, proyektil, efek, bidik, bar HP, minimap
-    this.drawClashZone(ctx, now);
+    // lapisan 2D di atas: proyektil, efek, bidik, bar HP, minimap
     this.drawProjectiles(ctx, now);
     this.drawEffects(ctx, now);
     this.drawAim(ctx, now);
@@ -1859,22 +1857,6 @@ export class ArenaRenderer3D extends ArenaRenderer {
   }
 
 
-  drawClashZone(ctx, now) {
-    if (!this.state.clash) return;
-    ctx.save();
-    ctx.setTransform(this.transform.dpr, 0, 0, this.transform.dpr, 0, 0);
-    this.place(ctx, ARENA.width / 2, ARENA.height / 2);
-    ctx.strokeStyle = "rgba(255, 224, 96, 0.8)";
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.arc(0, 0, 205, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.globalAlpha = 0.16 + Math.sin(now * 0.006) * 0.06;
-    ctx.fillStyle = "#ffe36d";
-    ctx.fill();
-    ctx.restore();
-  }
-
   drawStructureBars(ctx) {
     const dpr = this.transform.dpr;
     const bar = (x, y, z, width, hp, maxHp, color) => {
@@ -2037,7 +2019,7 @@ export class ArenaRenderer3D extends ArenaRenderer {
         ctx.fillStyle = teamColor;
         ctx.font = '700 16px "Trebuchet MS", sans-serif';
         ctx.textAlign = "center";
-        ctx.fillText(`${Math.ceil(player.respawnIn / 1000)}`, 0, 0);
+        if (!player.needsRevive) ctx.fillText(`${Math.ceil(player.respawnIn / 1000)}`, 0, 0);
         ctx.restore();
         continue;
       }
@@ -2050,15 +2032,6 @@ export class ArenaRenderer3D extends ArenaRenderer {
       ctx.fillStyle = teamColor;
       ctx.fill();
       ctx.globalAlpha = 1;
-      if (player.edge) {
-        ctx.strokeStyle = "#ffe36d";
-        ctx.lineWidth = 3;
-        ctx.setLineDash([7, 7]);
-        ctx.beginPath();
-        ctx.arc(0, 0, player.radius + 17 + Math.sin(now * 0.006) * 4, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
       if (player.slowed) {
         ctx.fillStyle = "rgba(69, 195, 255, 0.22)";
         ctx.beginPath();

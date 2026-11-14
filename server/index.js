@@ -792,13 +792,13 @@ export function createGameServer(options = {}) {
         if (!room) return;
         const result = room.answerQuiz(
           ctx.playerId,
-          String(message.clashId ?? ""),
+          String(message.duelId ?? ""),
           Number(message.option),
           now,
         );
         safeSend(ws, {
           type: "quizAck",
-          clashId: message.clashId ?? null,
+          duelId: message.duelId ?? null,
           accepted: result.accepted,
           correct: result.correct ?? false,
           reason: result.reason ?? null,
@@ -809,6 +809,12 @@ export function createGameServer(options = {}) {
       if (message.type === "towerQuiz") {
         if (!ctx.roomCode || !ctx.playerId) return;
         rooms.get(ctx.roomCode)?.requestTowerQuiz(ctx.playerId, now);
+        return;
+      }
+
+      if (message.type === "revive") {
+        if (!ctx.roomCode || !ctx.playerId) return;
+        rooms.get(ctx.roomCode)?.requestReviveQuiz(ctx.playerId, now);
         return;
       }
 

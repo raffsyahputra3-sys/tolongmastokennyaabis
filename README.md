@@ -1,13 +1,29 @@
 ﻿# Logicodix: Momentum Arena
 
-MOBA fisika **3v3** real-time yang bisa dimainkan **online lewat internet**: cari
-lawan lewat matchmaking atau buat room privat dan bagikan kodenya ke teman. Slot
-yang belum terisi otomatis diisi bot, jadi pertandingan tetap jalan meski kamu
-bermain sendiri. Dilengkapi **Physics Clash**, **kuis menara**, modul belajar
-**Materi / Latihan / Latihan Harian**, **Asisten Fisika** (chatbot AI), server
-otoritatif, AI takeover saat disconnect, dan client desktop Electron. Semua soal
-wajib bertema fisika dan mekanik tempur memakai momentum, impuls, tumbukan, serta
-proyektil.
+- **Tim:** *tolong mas tokennya abis* — Gestia Deviana, Rafi Praja Syahputra, Muhammad Hadist Rifannan
+- **Kategori:** Web (PWA) + Mobile (APK Android)
+- **Nama aplikasi:** Logicodix: Momentum Arena
+- **Aplikasi online:** <https://hackathon-tong-sampah.onrender.com>
+
+## Ringkasan
+
+**Masalah yang diangkat.** Materi momentum, impuls, tumbukan, dan proyektil di
+fisika SMA sering terasa abstrak dan membosankan bila hanya dibaca dari buku,
+sehingga siswa sulit melihat hubungan antara rumus dan kejadian nyata. Latihan
+soal pun jarang memberi umpan balik langsung.
+
+**Solusi.** MOBA fisika **3v3** real-time yang bisa dimainkan **online lewat
+internet**: cari lawan lewat matchmaking atau buat room privat dan bagikan kodenya
+ke teman, dan slot yang belum terisi otomatis diisi bot. Mekanik tempur memakai
+momentum, impuls, tumbukan, serta proyektil, dan **momen-momen penting
+diselesaikan lewat soal fisika** (kuis menara dan kuis hidup kembali). Ada juga
+modul belajar **Materi / Latihan / Latihan Harian** dan **Asisten Fisika** (chatbot
+AI), plus server otoritatif, AI takeover saat disconnect, dan client desktop
+Electron.
+
+**Target pengguna.** Siswa SMA — terutama yang sedang mempelajari momentum &
+impuls — dan guru fisika yang mencari media ajar interaktif. Pemain umum yang
+menyukai MOBA juga bisa bermain tanpa latar belakang fisika mendalam.
 
 <p align="center">
   <a href="https://hackathon-tong-sampah.onrender.com">
@@ -20,6 +36,42 @@ proyektil.
     <img alt="Deploy server online" src="https://img.shields.io/badge/Deploy-Server%20Online-46E3B7?style=for-the-badge&logo=render&logoColor=white">
   </a>
 </p>
+
+## Fitur utama
+
+- Pertandingan MOBA fisika **3v3 real-time lintas internet** (WebSocket, server otoritatif 30 Hz).
+- **Matchmaking online** dan **room privat** dengan kode; slot kosong otomatis diisi bot.
+- **Peta 3 lane** dengan menara berlapis, Nexus terlindungi, cover fisika, dan minion bertema faksi.
+- **6 hero** dengan gaya main dan ultimate khas, lengkap dash, shockwave, dan dash-aim.
+- **Kuis menara** (aksi SERANG SOAL / `F` saat membidik menara): jawaban benar = damage besar.
+- **Kuis hidup kembali**: pemain tumbang hidup lagi dengan menjawab 2 soal (bukan timer).
+- **AI takeover** saat pemain terputus dan **reconnect** dalam 60 detik tanpa kehilangan sesi.
+- **Modul belajar**: Materi, Latihan, dan Latihan Harian (streak harian).
+- **Asisten Fisika**: chatbot AI hemat token (retrieval chunk + template, bisa baca foto soal).
+- **Multi-platform**: browser/PWA, **APK Android** native (Capacitor), dan desktop **Electron**.
+- **Kontrol sentuh** (joystick, drag-aim) dengan HUD responsif untuk layar HP.
+- **Efek layar** ultimate, audio prosedural, dan pengaturan aksesibilitas (kilatan/getar/jumpscare).
+- **Akun pemain opsional** (Supabase) dengan RLS serta hak ekspor & hapus data.
+- **Deploy otomatis**: Render untuk server, GitHub Actions untuk APK.
+
+## Teknologi
+
+| Lapisan | Dipakai |
+|---|---|
+| Bahasa | JavaScript (ES Modules), HTML, CSS |
+| Client game | Canvas 2D + **Three.js** (WebGL) untuk arena 3D, Web Audio API, Service Worker (PWA) |
+| Desktop | **Electron** |
+| Mobile | **Capacitor 8** (APK Android native) + PWA |
+| Server | **Node.js 20+** (`node:http`) + **`ws`** (WebSocket), simulasi fisika 30 Hz |
+| Database & Auth | **Supabase** — Postgres + Auth + Row Level Security (opsional; diakses lewat REST/PostgREST tanpa SDK) |
+| AI | **Helipod AI gateway** (model `qwen-vl-ocr`) via `POST /api/asisten` |
+| API internal | WebSocket protokol game, `GET /healthz`, `POST /api/asisten` |
+| Hosting & CI | **Render** (`render.yaml`) dan **GitHub Actions** + Releases (APK) |
+| Tunnel | **Cloudflare quick tunnel** (`npm run online`) untuk link publik sementara |
+| Pengujian | `node:test` (`npm test`) dan `scripts/check.mjs` (`npm run check`) |
+
+Pustaka pihak ketiga yang disertakan: **Three.js** (MIT) dan `ws`. Daftar lengkap
+atribusi ada di [CREDITS.md](./CREDITS.md).
 
 ## Sudah online
 
@@ -56,6 +108,7 @@ Prasyarat: Node.js 20 atau lebih baru.
 
 ```bash
 npm install
+cp .env.example .env   # opsional: isi variabel yang dibutuhkan
 npm test
 npm run check
 npm start
@@ -69,6 +122,13 @@ npm start
 
 Tanpa Electron, client juga dapat dibuka di browser melalui
 `http://127.0.0.1:8787`. Health check tersedia di `/healthz`.
+
+**Konfigurasi.** Semua environment variable bersifat opsional (asisten AI dan akun
+pemain otomatis nonaktif bila tidak diisi). Daftar lengkap beserta nilai bawaannya
+ada di [`.env.example`](./.env.example); nilainya dapat diisi lewat shell
+(mis. `PORT=9000 npm start`) atau dashboard hosting (Render > Environment). Cara
+mengaktifkan Asisten Fisika dijelaskan di [bagian asisten](#asisten-fisika-chatbot)
+dan akun pemain di [bagian akun](#menyiapkan-supabase).
 
 ## Server online
 
@@ -149,9 +209,8 @@ dari ikon gerigi > **Pengaturan > TINGKAT FISIKA**.
 | **ASISTEN FISIKA** | Chatbot AI: tanya materi atau kirim foto soal. Hemat token (retrieval 3 topik + template jawaban) dan hanya menjawab dari materi game. |
 | **Latihan Harian** | 5 soal baru setiap hari dengan pengingat di lobi dan runtutan (streak) hari berturut-turut. |
 
-Detail tiap fitur ada di `PRD-MATERI.md`, `PRD-LATIHAN.md`,
-`PRD-DAILY-LATIHAN.md`, `PRD-agent-pembuat-chatbot.md`, dan
-`PRD-efisiensi-jawaban-template.md`.
+Detail tiap fitur ada di `PRD-MATERI.md`, `PRD-LATIHAN.md`, dan
+`PRD-DAILY-LATIHAN.md`.
 
 ### Asisten Fisika (chatbot)
 
@@ -425,37 +484,41 @@ tidak mengubah gameplay. Config per hero ada di `shared/fx.js`.
 | Dash | `Space` |
 | Shockwave | `R` |
 | Super | `E` |
-| Jawab Clash | `1`–`4` atau klik opsi |
+| Jawab soal | `1`–`4` atau klik opsi |
 | Pengaturan | Ikon gerigi / status server |
 
-**Duel jawab.** Saat kamu menyerang hero lawan yang ada dalam jarak serang dan arah
-bidikmu, tembakan ditahan dan kalian berdua mendapat soal singkat yang sama
-(3 detik). Penyerang yang menjawab benar lebih dulu melepas tembakannya dan
-mendapat Edge kecil. Kalau korban lebih cepat, serangan gagal dan penyerang kena
-Momentum Loss kecil. Kalau keduanya salah atau waktu habis, serangan gagal dan
-korban kena Momentum Loss sedang. Setelah duel, korban kebal duel 2 detik dan
-pasangan yang sama baru bisa berduel lagi setelah 3 detik. Tembakan jarak jauh,
-serangan ke minion, menara, atau Nexus, dan bot lawan bot tidak memicu duel.
-Semua angka ada di `DUEL` pada `shared/constants.js`; `DUEL.enabled = false`
-mematikan mekanik ini.
+**Kuis menara.** Saat kamu membidik menara lawan, tembakan ditahan dan muncul satu
+soal fisika singkat. Jawaban benar memberi damage besar ke menara; jawaban salah
+membuatmu kena Momentum Loss kecil. Kuis ini dipicu lewat aksi SERANG SOAL (`F` /
+tombol SOAL). Semua angka ada di `DUEL` pada `shared/constants.js`.
 
-Soal muncul setiap Physics Clash. Jawaban benar pertama memberi **Physics Edge**
-dan **Insight**; jawaban salah memberi **Momentum Loss**. Server menyimpan kunci
-jawaban dan memvalidasi waktu serta ID Clash.
+**Kuis hidup kembali.** Saat tumbang, pemain manusia tidak menunggu timer: hidup
+kembali dengan menjawab `REVIVE.questions` soal fisika dengan benar (lihat `REVIVE`
+di `shared/constants.js`). Bot dan pemain yang terputus (AI takeover) tetap memakai
+timer `MATCH.respawn`. Server menyimpan kunci jawaban dan memvalidasi ID kuis.
 
-## Arsitektur
+## Arsitektur dan alur data
 
 ```
-Electron shell
-  └─ client (HTML/CSS/JS canvas)
-       └─ WebSocket ──> Node.js authoritative server
-                          ├─ room / matchmaking
-                          ├─ simulasi fisika 30 Hz
-                          ├─ validasi Physics Clash + kuis menara
-                          └─ AI takeover + reconnect 60 detik
+Browser / PWA ─┐
+APK Android ───┼── WebSocket (ws/wss) ──> Node.js authoritative server
+Electron ──────┘                              ├─ room / matchmaking
+                                              ├─ simulasi fisika 30 Hz
+                                              ├─ validasi kuis menara + kuis hidup kembali
+                                              ├─ AI takeover + reconnect 60 detik
+                                              ├─ POST /api/asisten ──> Helipod AI gateway
+                                              └─ Supabase (Auth + Postgres, opsional)
 ```
 
-- `client/main.js` — UI, lobby, HUD, overlay Clash/kuis, hasil match, reconnect.
+**Alur data satu pertandingan:**
+
+1. Client terhubung ke server (`ws`) dan memilih **CARI LAWAN** / **BUAT ROOM**; server menyusun tim dan mengisi slot kosong dengan bot.
+2. Saat match berjalan, client mengirim **input** (bitmask gerak/ability + arah aim) ~30–60 kali per detik.
+3. Server menjalankan fisika & combat 30 Hz dan menyiarkan **snapshot state** 15 Hz ke semua pemain.
+4. Kuis (menara/hidup kembali) dikirim ke satu pemain; jawaban divalidasi **hanya di server** (kunci jawaban tidak pernah dikirim saat kuis aktif).
+5. Pemain terputus → server mengaktifkan **AI takeover**; saat kembali dalam 60 detik, sesi dipulihkan dengan token.
+
+- `client/main.js` — UI, lobby, HUD, overlay kuis, hasil match, reconnect.
 - `client/render.js` / `client/render3d.js` — renderer arena 2D dan 3D serta portrait hero.
 - `client/net.js` — WebSocket, heartbeat, exponential backoff, resume sesi, alamat server bawaan.
 - `client/input.js` — keyboard, mouse, joystick, latch ability.
@@ -463,9 +526,14 @@ Electron shell
 - `client/materi.js`, `client/latihan.js`, `client/daily-latihan.js` — modul belajar fisika (materi, latihan, latihan harian).
 - `client/asisten.js`, `client/asisten-data.js` — Asisten Fisika: retrieval chunk, klasifikasi jenis pertanyaan, template jawaban, cache, dan overlay chat.
 - `server/index.js` — HTTP statis, health check, rate limit, routing pesan, dan proxy `/api/asisten`.
-- `server/room.js` — state room, fisika, combat, Clash, kuis menara, disconnect/reconnect.
+- `server/room.js` — state room, fisika, combat, kuis menara, kuis hidup kembali, disconnect/reconnect.
 - `server/bot.js` — AI takeover dan jawaban bot dengan akurasi terbatas.
 - `shared/` — konstanta, hero, fisika, minion, efek, bank soal, dan bank soal menara.
+
+## Video demo
+
+> ⏳ **TODO:** tautan video demo belum tersedia. Ganti baris ini dengan URL video
+> (YouTube/Drive) sebelum submit. Durasi mengikuti ketentuan lomba.
 
 ## Pengujian
 
@@ -476,25 +544,73 @@ npm run check
 
 - `test/physics.test.js` — rumus momentum, energi, tabrakan, pantulan, limit.
 - `test/questions.test.js` — validasi bank soal dan tingkat kesulitan.
-- `test/room.test.js` — jawaban valid/duplikat/terlambat, pemenang Clash,
-  Momentum Loss, AI takeover, dan reconnect.
-- `test/duel.test.js` / `test/combat.test.js` / `test/balance.test.js` — duel
-  jawab, combat, dan keseimbangan hero.
+- `test/room.test.js` — jawaban valid/duplikat, Momentum Loss, AI takeover, dan
+  reconnect.
+- `test/turret.test.js` / `test/respawn.test.js` — kuis menara dan kuis hidup
+  kembali.
+- `test/combat.test.js` / `test/balance.test.js` — combat dan keseimbangan hero.
 - `test/minions.test.js` / `test/fx.test.js` / `test/lobbyfx.test.js` — minion,
   efek layar, dan efek kartu lobi.
 - `test/asisten.test.js` — pemilihan chunk, klasifikasi jenis pertanyaan, dan
   penghematan panjang system prompt Asisten Fisika.
 
+## Akun demonstrasi
+
+Autentikasi memakai **Supabase** dan bersifat **opsional**. Untuk mencoba aplikasi,
+juri **tidak perlu akun sama sekali** — cukup buka
+<https://hackathon-tong-sampah.onrender.com>, lalu tekan **CARI LAWAN** atau
+**BUAT ROOM** dan bermain sebagai tamu dengan fitur penuh. Tombol **MASUK** hanya
+untuk menyimpan nama tampilan dan progres belajar lintas perangkat.
+
+## Variabel lingkungan (.env.example)
+
+Seluruh variabel bersifat **opsional**; tanpa diisi, game tetap berjalan penuh dan
+hanya asisten AI / akun pemain yang nonaktif. Daftar lengkap beserta nilai
+bawaannya ada di [`.env.example`](./.env.example). Isi nilai lewat environment
+variable shell (mis. `PORT=9000 npm start`) atau lewat dashboard penyedia hosting
+(Render > Environment). Berkas `.env` **tidak** dimuat otomatis oleh server.
+
+| Variabel | Fungsi |
+|---|---|
+| `PORT` | Port HTTP/WebSocket server lokal (bawaan 8787). |
+| `LOGICODIX_SERVER_URL` | URL WebSocket yang diberikan ke client Electron. |
+| `LOGICODIX_CLIENT_URL` | URL HTTP tempat Electron memuat aset client. |
+| `LOGICODIX_PHONE` | Set `1` untuk jendela berukuran ponsel (`npm run phone`). |
+| `LOGICODIX_DEFAULT_SERVER` | Alamat server bawaan yang ditanam ke APK saat build. |
+| `HELIPOD_API_KEY` | Kunci gateway Helipod untuk Asisten Fisika (fallback `~/.helipod_key`). |
+| `HELIPOD_MODEL` | Model AI (bawaan `qwen-vl-ocr`). |
+| `HELIPOD_BASE_URL` | Base URL gateway Helipod (bawaan `https://ai.helipod.io/v1`). |
+| `SUPABASE_URL` | Project URL Supabase untuk akun pemain. |
+| `SUPABASE_ANON_KEY` | Anon key Supabase (aman di sisi klien). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Cadangan hapus/ekspor di server (tidak wajib). |
+| `SUPABASE_JWT_SECRET` | Hanya bila proyek memakai penandatanganan HS256. |
+
 ## Keamanan dan batasan MVP
 
 - Server otoritatif: client hanya mengirim bitmask input dan arah aim.
-- Kunci jawaban tidak pernah dikirim selama Clash aktif.
+- Kunci jawaban tidak pernah dikirim selama kuis aktif.
 - Payload WebSocket dibatasi 16 KB dan rate limit 700 pesan/10 detik.
 - Electron memakai context isolation, sandbox, tanpa `nodeIntegration`, dan
   navigasi keluar dibatasi.
 - Sesi reconnect memakai token acak dan grace period 60 detik.
 - Format pertandingan 3v3 tiga lane, 6 hero, 8 menit per match; slot kosong diisi
   bot. Item shop, rank, dan fog of war ada di roadmap PRD.
+
+## Atribusi
+
+- **Aset visual & audio:** seluruh model hero/minion, efek, dan suara dibuat
+  **prosedural lewat kode** (Three.js, Canvas 2D, Web Audio). Tidak ada gambar,
+  sprite, model, atau berkas audio pihak ketiga yang disertakan.
+- **Pustaka:** [Three.js](https://threejs.org/) (MIT) dan
+  [`ws`](https://github.com/websockets/ws) (MIT). Lisensi Three.js ada di
+  `assets/vendor/three.LICENSE`.
+- **Template:** tidak memakai template pihak ketiga; tata letak dan gaya ditulis
+  sendiri.
+- **Dataset:** bank soal fisika disusun sendiri (`shared/questions.js`,
+  `shared/turretQuestions.js`); tidak memakai dataset publik.
+- Rincian dan aturan menambah aset ada di [CREDITS.md](./CREDITS.md).
+- **Layanan pihak ketiga:** Render (hosting), Supabase (auth + database, opsional),
+  Helipod (gateway AI, opsional), Cloudflare (tunnel sementara), GitHub Actions.
 
 
 

@@ -160,7 +160,7 @@
             <div class="room-header">
               <div>
                 <span class="eyebrow">ROOM</span>
-                <h2>SIAP UNTUK CLASH?</h2>
+                <h2>SIAP BERTANDING?</h2>
               </div>
               <button id="leaveRoomBtn" class="icon-btn small" type="button" aria-label="Keluar room">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
@@ -230,7 +230,6 @@
                 <div class="timer-chip"><span class="timer-dot"></span><strong id="matchTimer">08:00</strong></div>
                 <div class="score-line"><b id="scoreBlue" class="blue">0</b><span>KO</span><b id="scoreRed" class="red">0</b></div>
                 <div id="objectiveStatus" class="objective-status">HANCURKAN MENARA</div>
-                <div id="nextClash" class="next-clash">CLASH 0:20</div>
               </div>
 
               <div class="hud-right">
@@ -259,30 +258,12 @@
               <div id="eventFeed" class="event-feed"></div>
               <div id="hitVignette" class="hit-vignette" aria-hidden="true"></div>
               <div id="hitDir" class="hit-dir" aria-hidden="true"><i></i></div>
-              <div id="respawnBanner" class="respawn-banner hidden">RESPAWN 5</div>
-
-              <div id="clashOverlay" class="clash-overlay hidden" role="dialog" aria-modal="false" aria-label="Physics Clash">
-                <div class="clash-card">
-                  <div class="clash-head">
-                    <span class="clash-label">PHYSICS CLASH</span>
-                    <span id="clashCategory" class="clash-category">DINAMIKA</span>
-                    <span id="clashTimer" class="clash-timer">8.0</span>
-                  </div>
-                  <div class="clash-timer-track"><div id="clashTimerFill"></div></div>
-                  <p id="clashPrompt" class="clash-prompt"></p>
-                  <div id="clashOptions" class="clash-options"></div>
-                  <div class="clash-race">
-                    <span id="clashSelfStatus">KAMU: MENJAWAB</span>
-                    <span id="clashEnemyStatus">LAWAN: MENUNGGU</span>
-                  </div>
-                  <div id="clashResult" class="clash-result hidden">
-                    <strong id="clashResultTitle">BENAR</strong>
-                    <p id="clashExplanation"></p>
-                  </div>
-                </div>
+              <div id="respawnBanner" class="respawn-banner hidden">
+                <span id="respawnBannerText">RESPAWN 5</span>
+                <button id="reviveBtn" class="respawn-revive hidden" type="button">JAWAB SOAL UNTUK HIDUP</button>
               </div>
 
-              <div id="duelCard" class="duel-card hidden" role="dialog" aria-modal="false" aria-label="Duel jawab">
+              <div id="duelCard" class="duel-card hidden" role="dialog" aria-modal="false" aria-label="Kuis soal">
                 <div class="duel-head">
                   <span id="duelRole" class="duel-role">DUEL</span>
                   <span id="duelCategory" class="duel-category"></span>
