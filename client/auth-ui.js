@@ -34,6 +34,7 @@ export function initAuthUI({ auth, toast = () => {}, getSkill = () => 2 }) {
     saveProfile: el("authSaveProfile"),
     exportBtn: el("authExport"),
     del: el("authDelete"),
+    delRow: el("authDeleteRow"),
     delBox: el("authDeleteBox"),
     delConfirm: el("authDeleteConfirm"),
     delConfirmBtn: el("authDeleteConfirmBtn"),
@@ -71,6 +72,8 @@ export function initAuthUI({ auth, toast = () => {}, getSkill = () => 2 }) {
     els.guest?.classList.toggle("hidden", !auth.enabled || signedIn);
     els.account?.classList.toggle("hidden", !signedIn);
     els.signupFields?.classList.toggle("hidden", auth.enabled && mode !== "signup");
+    els.delRow?.classList.toggle("hidden", !auth.accountDeletion);
+    if (!auth.accountDeletion) els.delBox?.classList.add("hidden");
     els.tabLogin?.classList.toggle("active", mode === "login");
     els.tabSignup?.classList.toggle("active", mode === "signup");
     if (els.submit) els.submit.textContent = !auth.enabled ? "BELUM TERSEDIA" : mode === "signup" ? "DAFTAR" : "MASUK";

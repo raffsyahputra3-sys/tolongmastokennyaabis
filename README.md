@@ -190,6 +190,43 @@ Konfigurasi server (bukan di client):
 > Asisten adalah fitur opsional: kalau key belum diisi, game tetap berjalan dan
 > panelnya hanya menampilkan pesan belum dikonfigurasi.
 
+## Akun pemain (opsional)
+
+Akun pemain dipakai untuk menyimpan nama tampilan dan progres belajar lintas
+perangkat. Fitur ini **opsional**: tanpa mengisinya, game tetap jalan penuh
+sebagai tamu. Ada juga tombol **MASUK** di bilah atas untuk daftar/masuk.
+
+Prinsip etis yang dipegang:
+
+- **Data minimal** — hanya email, nama tampilan, dan progres belajar.
+- **Consent eksplisit** — pendaftaran wajib mencentang Kebijakan Privasi dan
+  konfirmasi batas usia (13+ atau izin orang tua/wali).
+- **Hak hapus & ekspor** — tombol _Ekspor_ (JSON) dan _Hapus_ di menu Akun.
+  Penghapusan permanen dan menyeluruh.
+- **Anti-enumerasi** — pesan galat disamakan agar tidak membocorkan email terdaftar.
+- **RLS** — setiap akun hanya bisa membaca/menulis barisnya sendiri.
+- Tanpa iklan dan tanpa penjualan data.
+
+### Menyiapkan Supabase
+
+1. Buat proyek di <https://supabase.com>.
+2. Buka **SQL Editor**, tempel isi `supabase/schema.sql`, lalu **Run**. Berkas
+   ini membuat tabel `profiles` & `daily_progress`, aturan RLS, trigger profil
+   otomatis, dan fungsi `delete_my_account()`.
+3. Salin **Project URL** dan **anon key** dari **Settings → API**.
+4. Isi sebagai environment variable server game:
+
+| Variabel | Wajib | Keterangan |
+| --- | --- | --- |
+| `SUPABASE_URL` | ya | Project URL, mis. `https://xxxx.supabase.co`. |
+| `SUPABASE_ANON_KEY` | ya | Anon key (aman di sisi klien). |
+| `SUPABASE_SERVICE_ROLE_KEY` | tidak | Jalur cadangan hapus/ekspor di server. RPC `delete_my_account()` sudah cukup tanpa ini. |
+| `SUPABASE_JWT_SECRET` | tidak | Hanya bila proyek memakai penandatanganan HS256. |
+
+Setelah dua variabel wajib terisi dan server dijalankan ulang, tombol MASUK
+aktif. Tanpa keduanya, dialog hanya menampilkan catatan "belum diaktifkan" dan
+semua pemain bermain sebagai tamu.
+
 ## Menghubungkan server internet
 
 Cara paling mudah adalah menekan tombol **Deploy Server Online** di atas; Render

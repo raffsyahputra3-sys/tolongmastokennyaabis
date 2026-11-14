@@ -273,7 +273,7 @@ export class AuthClient {
   }
 
   async loadProfile() {
-    const rows = await this.#rest(`/profiles?id=eq.${this.userId}&select=display_name,skill_level`);
+    const rows = await this.#rest(`/profiles?id=eq.${this.userId}&select=display_name,skill_level,created_at,updated_at`);
     return rows?.[0] ?? null;
   }
 
@@ -313,33 +313,61 @@ export class AuthClient {
 
   // ---- hak pengguna: ekspor & hapus ----
 
+  /**
+   * Ekspor data pribadi (hak portabilitas). Dibaca langsung dari akun sendiri
+   * lewat RLS, jadi cukup anon key + sesi login.
+   */
   async exportData() {
-    const token = await this.#token();
-    let response;
-    try {
-      response = await fetch(`${serverHttpBase()}/api/account/export`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    } catch {
-      throw new AuthError("network");
-    }
-    if (!response.ok) throw new AuthError(response.status === 401 ? "unauthorized" : "network");
-    return response.json();
+    const [profile, dailyProgress] = await Promise.all([
+      this.loadProfile(),
+      this.loadDailyProgress(),
+    ]);
+    return {
+      exportedAt: new Date().toISOString(),
+      userId: this.userId,
+      email: this.email,
+      displayName: this.displayName,
+      profile,
+      dailyProgress,
+    };
   }
 
+  /**
+   * Hapus akun permanen (hak penghapusan). Jalur utama: RPC Supabase
+   * `delete_my_account()` (cukup anon key). Bila belum terpasang, jalur cadangan
+   * memakai endpoint server yang butuh service role.
+   */
   async deleteAccount() {
     const token = await this.#token();
-    let response;
     try {
-      response = await fetch(`${serverHttpBase()}/api/account/delete`, {
+      const response = await fetch(`${this.config.url}/rest/v1/rpc/delete_my_account`, {
+        method: "POST",
+        headers: this.#headers({ Authorization: `Bearer ${token}` }),
+        body: "{}",
+      });
+      if (response.ok) {
+        this.clearSession();
+        return true;
+      }
+      if (response.status !== 404) {
+        const body = await response.json().catch(() => null);
+        throw new AuthError(/not authenticated/i.test(String(body?.message ?? "")) ? "unauthorized" : "delete-failed");
+      }
+    } catch (error) {
+      if (error instanceof AuthError) throw error;
+      throw new AuthError("network");
+    }
+
+    let fallback;
+    try {
+      fallback = await fetch(`${serverHttpBase()}/api/account/delete`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch {
       throw new AuthError("network");
     }
-    if (!response.ok) throw new AuthError(response.status === 401 ? "unauthorized" : "delete-failed");
+    if (!fallback.ok) throw new AuthError(fallback.status === 401 ? "unauthorized" : "delete-failed");
     this.clearSession();
     return true;
   }

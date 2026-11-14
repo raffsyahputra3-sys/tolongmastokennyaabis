@@ -14,3 +14,15 @@ services:
       # Tanpa ini, Asisten Fisiko menjawab "belum dikonfigurasi" dan fitur lain tetap normal.
       - key: HELIPOD_API_KEY
         sync: false
+      # Akun pemain (Supabase). Lihat supabase/schema.sql untuk menyiapkan basis data.
+      # Tanpa variabel ini, aplikasi tetap berjalan dalam mode tamu.
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      # Opsional: jalur cadangan hapus/ekspor (RPC delete_my_account sudah cukup tanpa ini).
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # Opsional: hanya bila proyek Supabase memakai penandatanganan HS256.
+      - key: SUPABASE_JWT_SECRET
+        sync: false

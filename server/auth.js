@@ -23,7 +23,10 @@ export function supabaseConfig() {
     enabled,
     url: enabled ? CONFIG.url : null,
     anonKey: enabled ? CONFIG.anonKey : null,
-    accountDeletion: Boolean(enabled && CONFIG.serviceKey),
+    // Hapus akun & ekspor data berjalan lewat RPC/RLS dengan anon key saja.
+    // Bila service role tersedia, server juga menyediakan jalur cadangannya.
+    accountDeletion: enabled,
+    serviceRole: Boolean(enabled && CONFIG.serviceKey),
   };
 }
 

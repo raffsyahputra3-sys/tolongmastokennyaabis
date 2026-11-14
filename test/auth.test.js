@@ -36,7 +36,8 @@ test("konfigurasi publik Supabase aktif dan tidak memaparkan service role", () =
   assert.equal(config.enabled, true);
   assert.equal(config.url, "https://contoh.supabase.co");
   assert.equal(config.anonKey, "anon-key-uji");
-  assert.equal(config.accountDeletion, false, "tanpa service role, hapus akun tidak tersedia");
+  assert.equal(config.accountDeletion, true, "hapus akun lewat RPC cukup dengan anon key");
+  assert.equal(config.serviceRole, false);
   assert.equal("serviceKey" in config, false);
 });
 
