@@ -704,6 +704,12 @@ export function createGameServer(options = {}) {
         return;
       }
 
+      if (message.type === "towerQuiz") {
+        if (!ctx.roomCode || !ctx.playerId) return;
+        rooms.get(ctx.roomCode)?.requestTowerQuiz(ctx.playerId, now);
+        return;
+      }
+
       if (message.type === "duelExit") {
         if (!ctx.roomCode || !ctx.playerId) return;
         const room = rooms.get(ctx.roomCode);

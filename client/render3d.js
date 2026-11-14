@@ -1690,6 +1690,7 @@ export class ArenaRenderer3D extends ArenaRenderer {
     this.drawAim(ctx, now);
     this.drawPings(ctx, now);
     this.drawStructureBars(ctx);
+    this.drawTowerLabels(ctx);
     this.drawPlayers(ctx, now);
     this.drawMinimap(ctx);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1911,6 +1912,27 @@ export class ArenaRenderer3D extends ArenaRenderer {
     for (const cover of this.state.covers ?? []) {
       if (!cover.alive || cover.hp >= cover.maxHp) continue;
       bar(cover.x + cover.w / 2, cover.y + cover.h / 2, 70, Math.min(cover.w, 80), cover.hp, cover.maxHp, "#d7f99a");
+    }
+  }
+
+  /** Label "SERANG" di menara lawan: menandai menara bisa dihancurkan (serangan biasa / jawab soal). */
+  drawTowerLabels(ctx) {
+    const dpr = this.transform.dpr;
+    const self = this.getSelf();
+    for (const tower of this.state.towers ?? []) {
+      if (!tower.alive || tower.team === self?.slot) continue;
+      const p = this.project(tower.x, tower.y, 70 * TOWER_VISUAL_SCALE);
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.font = 'bold 13px "Trebuchet MS", sans-serif';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(0,0,0,0.75)";
+      ctx.fillStyle = "#fde68a";
+      ctx.strokeText("SERANG", p.x, p.y + 26);
+      ctx.fillText("SERANG", p.x, p.y + 26);
+      ctx.restore();
     }
   }
 

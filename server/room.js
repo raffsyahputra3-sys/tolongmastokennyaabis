@@ -17,6 +17,7 @@ import {
   TEAM,
   TEAM_SIZE,
   TOWERS,
+  TURRET,
 } from "../shared/constants.js";
 import { HEROES, getHero } from "../shared/heroes.js";
 import { minionVariant } from "../shared/minions.js";
@@ -785,18 +786,45 @@ export class Room {
     if (this.duelAsAttacker(player.id)) return;
     const hero = getHero(player.heroId);
     const victim = this.findDuelTarget(player, aimX, aimY, now);
-    const towerTarget = !player.bot && !victim ? this.findTowerTarget(player, aimX, aimY, now) : null;
     player.ammo -= 1;
     player.attackCd = hero.attackInterval;
     if (victim) {
       this.openDuel(player, victim, aimX, aimY, now);
       return;
     }
-    if (towerTarget) {
-      this.openTowerQuiz(player, towerTarget, aimX, aimY, now);
-      return;
-    }
+    // Menara kini boleh ditembak biasa (damage kecil). Serangan jawab soal
+    // dipicu terpisah lewat requestTowerQuiz().
     this.fireBasicShot(player, aimX, aimY, now);
+  }
+
+  /**
+   * "Serang jawab soal" pada menara: aksi terpisah dari serangan biasa.
+   * Menjawab benar memberi damage besar (lihat resolveDuel), sedangkan serangan
+   * biasa hanya memberi damage kecil (TURRET.normalMult).
+   */
+  requestTowerQuiz(playerId, now = Date.now()) {
+    const player = this.players.get(playerId);
+    if (!player || player.bot || !player.alive) return { accepted: false, reason: "invalid" };
+    const dx = player.aimX - player.x;
+    const dy = player.aimY - player.y;
+    const panjang = Math.hypot(dx, dy);
+    if (panjang < 1) return { accepted: false, reason: "invalid" };
+    const aimX = dx / panjang;
+    const aimY = dy / panjang;
+    const tower = this.findTowerTarget(player, aimX, aimY, now);
+    if (!tower) {
+      this.send(player, {
+        type: "toast",
+        text: "Bidak menara lawan dulu, baru tekan SOAL.",
+        tone: "",
+      });
+      return { accepted: false, reason: "no-target" };
+    }
+    if (player.attackCd > 0 || player.ammo <= 0) return { accepted: false, reason: "cooldown" };
+    player.ammo -= 1;
+    player.attackCd = getHero(player.heroId).attackInterval;
+    this.openTowerQuiz(player, tower, aimX, aimY, now);
+    return { accepted: true };
   }
 
   fireBasicShot(player, aimX, aimY, now) {
@@ -1240,9 +1268,14 @@ export class Room {
           if (projectile.explodeRadius) {
             this.explodeProjectile(projectile, now);
           } else {
+            // Menara hanya menerima sebagian damage dari serangan biasa;
+            // serangan jawab soal (kuis) tetap memberi damage penuh yang jauh lebih besar.
+            const amount = structure.id.startsWith("tower")
+              ? Math.max(TURRET.normalMin, projectile.damage * TURRET.normalMult)
+              : projectile.damage;
             this.damageStructure(
               structure,
-              projectile.damage,
+              amount,
               this.players.get(projectile.ownerId),
               now,
             );
@@ -1310,6 +1343,16 @@ export class Room {
       const direction = normalize(minion.x - x, minion.y - y);
       minion.vx += direction.x * force * falloff * 0.8;
       minion.vy += direction.y * force * falloff * 0.8;
+    }
+
+    for (const structure of this.towers) {
+      if (!structure.alive || (team !== null && structure.team === team)) continue;
+      const distance = Math.hypot(structure.x - x, structure.y - y);
+      if (distance > radius + structure.radius) continue;
+      const falloff = 1 - clamp(distance / (radius + structure.radius), 0, 0.85);
+      // Area/ultimate = serangan biasa: damage ke menara ikut dikecilkan.
+      const amount = Math.max(TURRET.normalMin, damage * TURRET.normalMult * falloff);
+      this.damageStructure(structure, amount, owner, now);
     }
 
     for (const cover of this.covers) {

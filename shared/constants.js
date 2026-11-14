@@ -81,6 +81,16 @@ export const COMBAT = Object.freeze({
   maxShield: 260,
 });
 
+/**
+ * Menara bisa dihancurkan lewat dua jalur:
+ * - serangan biasa (proyektil biasa / area) => damage kecil (normalMult).
+ * - serangan jawab soal (kuis) => damage besar (lihat resolveDuel, pakai damage hero penuh).
+ */
+export const TURRET = Object.freeze({
+  normalMult: 0.35,
+  normalMin: 1,
+});
+
 export const INPUT = Object.freeze({
   UP: 1,
   DOWN: 2,

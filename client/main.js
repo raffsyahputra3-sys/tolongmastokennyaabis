@@ -1323,6 +1323,11 @@ function handleAction(kind, value) {
     return;
   }
   if (!input.enabled) return;
+  if (kind === "towerQuiz") {
+    // serang jawab soal pada menara: damage besar kalau jawabannya benar
+    if (!client?.send({ type: "towerQuiz" })) toast("Tidak terhubung ke server.", "bad");
+    return;
+  }
   if (kind === "shoot") {
     const now = performance.now();
     if (now - ui.lastShootAt > 140) {

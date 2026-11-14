@@ -139,6 +139,10 @@ export class GameInput {
         event.preventDefault();
         if (!this.enabled) return;
         if (event.pointerType === "touch" || event.pointerType === "pen" || this.forceTouch) this.touchMode = true;
+        if (ability === "quiz") {
+          this.onAction?.("towerQuiz");
+          return;
+        }
         if (ability === "attack") {
           this.attackButtonHeld = true;
           this.attackPointerId = event.pointerId;
@@ -272,6 +276,13 @@ export class GameInput {
     if (event.code === "KeyJ") {
       event.preventDefault();
       this.attackHeld = true;
+      return;
+    }
+
+    if (event.code === "KeyF") {
+      // serang jawab soal pada menara (damage besar)
+      event.preventDefault();
+      if (!event.repeat) this.onAction?.("towerQuiz");
       return;
     }
 

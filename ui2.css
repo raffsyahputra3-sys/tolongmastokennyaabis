@@ -1117,6 +1117,20 @@ body[data-screen="select"] .v2-cta {
   height: clamp(60px, 14vh, 80px);
 }
 
+/* Tombol "serang jawab soal": damage besar ke menara, dipicu manual (F / tap). */
+.v2-dock .ability-quiz {
+  right: clamp(112px, 25vh, 152px);
+  bottom: clamp(116px, 32vh, 186px);
+  width: clamp(56px, 12.5vh, 72px);
+  height: clamp(56px, 12.5vh, 72px);
+  color: #fde68a;
+  border-color: #2a1a4d;
+  background:
+    radial-gradient(circle at 40% 28%, rgba(255, 255, 255, 0.32), transparent 32%),
+    linear-gradient(180deg, #7c3aed, #3b1d7a);
+  box-shadow: 0 5px 0 #1a0f33, 0 0 20px rgba(139, 92, 246, 0.4);
+}
+
 .v2-dock .ability svg {
   width: 44%;
   height: 44%;
