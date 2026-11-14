@@ -4,6 +4,19 @@
 - **Kategori:** Web (PWA) + Mobile (APK Android)
 - **Nama aplikasi:** GatraVolt — Game Pembelajaran Fisika Berbasis MOBA
 - **Aplikasi online:** <https://gatravolt.onrender.com>
+- **Versi Android (APK):** sudah tersambung ke server online, tinggal pasang dan buka
+
+> **GatraVolt adalah game Android yang bisa langsung dimainkan.** Versi APK-nya
+> sudah tertanam alamat server online `wss://gatravolt.onrender.com`, jadi
+> **tidak perlu menyetel apa pun**: pasang APK → buka aplikasi → pilih hero →
+> main 3v3 online lawan pemain lain. Server otomatis menyala saat diminta
+> (cold start ± 1 menit pada paket gratis), lalu game siap.
+
+**⬇️ Unduh APK Android (langsung jalan):**
+<https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/GatraVolt.apk>
+
+**Main tanpa memasang apa pun:** <https://gatravolt.onrender.com> (bisa dipasang
+sebagai PWA di Android/iPhone).
 
 ## Latar belakang
 
@@ -169,11 +182,14 @@ pertama bisa lambat beberapa detik.
 > panel asisten menampilkan pesan belum dikonfigurasi dan fitur lain tetap
 > normal. Lihat [Asisten Fisika](#asisten-fisika-chatbot).
 
-**Native Android + online.** Tekan **Download APK Android**, pasang di HP, lalu
-alamat server online sudah terisi otomatis (ubah lewat ikon gerigi bila perlu).
-APK di-build otomatis oleh GitHub Actions setiap push ke `main` dan diunggah ke
-halaman
-[Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases).
+**Android first: main tanpa setel apa pun.** Tekan
+**[Download APK Android](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/GatraVolt.apk)**,
+pasang di HP, lalu buka aplikasinya. Alamat server online sudah tertanam di dalam
+APK, jadi game **langsung tersambung** dan siap mencari lawan — tanpa mengisi
+alamat, tanpa satu Wi-Fi dengan komputer. APK di-build otomatis oleh GitHub
+Actions setiap push ke `main` dan diunggah ke halaman
+[Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)
+(tag `android-latest`).
 
 Dokumen produk lengkap ada di [PRD.md](./PRD.md).
 
@@ -402,18 +418,24 @@ seperti systemd atau container orchestrator.
 
 ## Instalasi di HP (Android / iPhone)
 
-### Android — APK native (tombol download)
+### Android — APK native (sudah otomatis tersambung ke server online)
 
-1. Tekan tombol **Download APK Android** di bagian atas README (atau buka halaman
-   [Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)).
+APK adalah cara utama memainkan GatraVolt di Android. Tidak ada langkah
+konfigurasi server: alamat online sudah ditanam saat build, jadi aplikasi
+**langsung terhubung** begitu dibuka.
+
+1. Tekan tombol **Download APK Android** di bagian atas README, atau unduh
+   langsung:
+   <https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/GatraVolt.apk>
 2. **Hapus dulu** aplikasi GatraVolt yang lama. Kunci debug dibuat ulang di setiap
    build, jadi memasang di atas versi lama akan gagal (*"App not installed"*).
 3. Buka file `GatraVolt.apk` di HP. Bila muncul peringatan, aktifkan **Izinkan
    dari sumber ini** / **Instal aplikasi tidak dikenal**.
-4. Buka aplikasi **GatraVolt**. Alamat server online sudah terisi otomatis; ubah
-   lewat ikon **gerigi** bila perlu.
-5. Masuk lewat **CARI LAWAN** (matchmaking) atau **BUAT ROOM** lalu bagikan kode
-   ke teman.
+4. Buka aplikasi **GatraVolt** — tidak perlu mengisi alamat server, sudah terisi
+   `wss://gatravolt.onrender.com`. Ikon **gerigi** hanya dipakai bila ingin
+   mengganti ke server lain (mis. laptopmu sendiri).
+5. Tekan **CARI LAWAN** (matchmaking) atau **BUAT ROOM** lalu bagikan kode ke
+   teman. Pertandingan langsung jalan di server online.
 
 APK di-build otomatis oleh GitHub Actions (debug-signed, cukup untuk dipasang
 manual di HP). iPhone tidak bisa memasang APK; gunakan PWA di bawah.
@@ -434,7 +456,11 @@ manual di HP). iPhone tidak bisa memasang APK; gunakan PWA di bawah.
 > **HTTPS**. Server Render dan link `npm run online` sudah HTTPS, jadi langsung
 > bisa dipasang penuh. Lewat `http://` biasa game tetap bisa dimainkan penuh di tab.
 
-## Main di Android
+## Main di Android (opsi browser, tanpa APK)
+
+**Untuk pemain biasa, pakai APK di atas** — lebih ringkas dan langsung tersambung
+ke server online. Bagian ini hanya untuk yang ingin main lewat browser (PWA) atau
+uji coba server lokal.
 
 Game berjalan di Chrome Android sebagai web app (PWA); tidak perlu build APK.
 Cara termudah adalah `npm run online` (link publik, tanpa satu Wi-Fi). Langkah di
@@ -465,11 +491,16 @@ Hasil (MVP dan papan skor, tombol **Main Lagi** di kanan-bawah).
 
 ## APK Android native (Capacitor)
 
+APK adalah bentuk utama GatraVolt di Android: satu berkas, sudah tersambung ke
+server online, tinggal pasang lalu main. Tidak ada instalasi tambahan, tidak ada
+pengaturan server, dan tidak butuh satu jaringan Wi-Fi dengan komputer.
+
 ### Unduh APK
 
 **⬇️ [Unduh GatraVolt.apk (Android)](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/GatraVolt.apk)**
 
 - Ukuran ± 5,7 MB (debug-signed, cukup untuk dipasang manual).
+- Server online sudah tertanam di dalamnya: `wss://gatravolt.onrender.com`.
 - Halaman rilis: [Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)
   (tag `android-latest`) — di sana juga ada tautan unduhan yang sama.
 - Build otomatis lewat GitHub Actions (`.github/workflows/android.yml`) setiap
@@ -477,20 +508,21 @@ Hasil (MVP dan papan skor, tombol **Main Lagi** di kanan-bawah).
   hasilnya juga diunggah sebagai artifact **GatraVolt-apk**.
 
 Cara pasang: unduh berkasnya di HP Android → buka (aktifkan **Izinkan instal
-dari sumber ini** bila diminta) → jalankan **GatraVolt** → pilih server
-`wss://gatravolt.onrender.com` atau tempel alamat server sendiri lewat ikon
-gerigi.
+dari sumber ini** bila diminta) → jalankan **GatraVolt**. Aplikasi langsung
+menyambung ke server online dan siap mencari lawan; ikon **gerigi** hanya perlu
+disentuh bila kamu ingin mengarahkannya ke server lain (mis. laptop sendiri).
 
 Proyek Android lengkap ada di `android/` (paket `com.logicodix.momentumarena`).
 Aplikasi membungkus client web di WebView native: layar penuh immersive, terkunci
 landscape, layar tidak padam saat bermain, tombol Kembali Android diarahkan ke menu
-game, ikon dan splash sendiri. Game server tetap berjalan di komputer/VPS.
+game, ikon dan splash sendiri. Server game berjalan di Render, jadi game tetap
+online tanpa komputer siapa pun yang menyala.
 
-Kalau ingin APK otomatis terhubung ke server tertentu, set repository variable
-`LOGICODIX_DEFAULT_SERVER` (mis. `https://gatravolt.onrender.com`)
-di GitHub sebelum build. Tanpa variable ini, APK native tetap memakai alamat
-bawaan `wss://gatravolt.onrender.com` (lihat `client/net.js`).
-Aplikasi juga tetap bisa mengganti alamat lewat ikon gerigi.
+Untuk mengganti alamat bawaan pada build berikutnya, set repository variable
+`LOGICODIX_DEFAULT_SERVER` (mis. `https://gatravolt.onrender.com`) di GitHub
+sebelum build. Tanpa variable ini, APK memakai alamat bawaan yang sudah online —
+`wss://gatravolt.onrender.com` (lihat `client/net.js`) — sehingga hasil unduhan
+**langsung bisa dimainkan** tanpa disetel.
 
 Yang dibutuhkan untuk build lokal (tidak ikut di repo): **Android Studio**
 (membawa JDK 21 dan Android SDK). Capacitor 8 memakai compileSdk 36.
