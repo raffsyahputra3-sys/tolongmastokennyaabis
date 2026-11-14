@@ -23,6 +23,8 @@ const required = [
   "client/lobbyfx.js",
   "client/combat.js",
   "client/fx.js",
+  "client/asisten.js",
+  "client/asisten-data.js",
   "server/index.js",
   "server/room.js",
   "server/bot.js",

@@ -3,6 +3,7 @@ import { angleToward, collectHitEvents, hpTone, mergeAlert } from "./combat.js";
 import { initDailyLatihan, refreshDailyLatihan } from "./daily-latihan.js";
 import { initLatihan } from "./latihan.js";
 import { initMateri } from "./materi.js";
+import { initAsisten } from "./asisten.js";
 import { SHOWCASE_MS } from "./lobbyfx.js";
 import { ScreenFx } from "./fx.js";
 import { GameInput } from "./input.js";
@@ -2485,6 +2486,7 @@ function init() {
   initMateri();
   initLatihan();
   initDailyLatihan();
+  initAsisten();
   buildHeroPicker();
   selectHero(ui.heroId);
   syncAudioUI();

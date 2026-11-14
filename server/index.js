@@ -1,7 +1,7 @@
 import { createServer as createHttpServer } from "node:http";
 import { readFileSync } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
-import { networkInterfaces } from "node:os";
+import { homedir, networkInterfaces } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { WebSocketServer } from "ws";
@@ -73,11 +73,177 @@ function isPathInside(root, candidate) {
   return relative && !relative.startsWith("..") && !path.isAbsolute(relative);
 }
 
+// ---- Asisten Fisika: proxy ke gateway AI ------------------------------------
+// API key tetap di server (env HELIPOD_API_KEY atau berkas ~/.helipod_key),
+// sehingga tidak pernah ikut terkirim ke browser pemain.
+const HELIPOD_DEFAULT_BASE = "https://ai.helipod.io/v1";
+const HELIPOD_DEFAULT_MODEL = "qwen-vl-ocr";
+const ASISTEN_MAX_BODY = 8 * 1024 * 1024;
+const ASISTEN_MAX_MESSAGES = 8;
+const ASISTEN_LIMIT = 20;
+const ASISTEN_WINDOW = 60_000;
+
+function bacaKunciHelipod() {
+  if (process.env.HELIPOD_API_KEY) return process.env.HELIPOD_API_KEY.trim();
+  try {
+    return readFileSync(path.join(homedir(), ".helipod_key"), "utf8").trim();
+  } catch {
+    return "";
+  }
+}
+
+function bacaBody(request) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    request.on("data", (chunk) => {
+      size += chunk.length;
+      if (size > ASISTEN_MAX_BODY) {
+        reject(new Error("body-too-large"));
+        request.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    request.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    request.on("error", reject);
+  });
+}
+
+function bersihkanMessages(raw) {
+  if (!Array.isArray(raw)) return [];
+  const hasil = [];
+  for (const pesan of raw.slice(0, ASISTEN_MAX_MESSAGES)) {
+    const role = pesan?.role;
+    if (role !== "system" && role !== "user" && role !== "assistant") continue;
+    const content = pesan.content;
+    if (typeof content === "string") {
+      hasil.push({ role, content: content.slice(0, 24_000) });
+      continue;
+    }
+    if (Array.isArray(content)) {
+      const bagian = [];
+      for (const item of content.slice(0, 4)) {
+        if (item?.type === "text" && typeof item.text === "string") {
+          bagian.push({ type: "text", text: item.text.slice(0, 4_000) });
+        } else if (item?.type === "image_url" && typeof item.image_url?.url === "string") {
+          const url = item.image_url.url;
+          if (url.startsWith("data:image/") && url.length <= 6 * 1024 * 1024) {
+            bagian.push({ type: "image_url", image_url: { url } });
+          }
+        }
+      }
+      if (bagian.length > 0) hasil.push({ role, content: bagian });
+    }
+  }
+  return hasil;
+}
+
+function clampNumber(value, min, max, fallback) {
+  const angka = Number(value);
+  if (!Number.isFinite(angka)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(angka)));
+}
+
+async function tanganiAsisten(request, response, log, asistenHits) {
+  const ip = request.socket.remoteAddress ?? "unknown";
+  const now = Date.now();
+  const jejak = asistenHits.get(ip);
+  if (!jejak || now - jejak.at > ASISTEN_WINDOW) {
+    asistenHits.set(ip, { at: now, count: 1 });
+  } else if (jejak.count >= ASISTEN_LIMIT) {
+    response.writeHead(429, { "Content-Type": "application/json; charset=utf-8" });
+    response.end(JSON.stringify({ error: "Terlalu banyak permintaan. Tunggu sebentar." }));
+    return;
+  } else {
+    jejak.count += 1;
+  }
+
+  const apiKey = bacaKunciHelipod();
+  if (!apiKey) {
+    response.writeHead(503, { "Content-Type": "application/json; charset=utf-8" });
+    response.end(
+      JSON.stringify({
+        error: "Asisten belum dikonfigurasi: set HELIPOD_API_KEY di server (atau berkas ~/.helipod_key).",
+      }),
+    );
+    return;
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(await bacaBody(request));
+  } catch (error) {
+    response.writeHead(error?.message === "body-too-large" ? 413 : 400, {
+      "Content-Type": "application/json; charset=utf-8",
+    });
+    response.end(JSON.stringify({ error: "Permintaan tidak valid." }));
+    return;
+  }
+
+  const messages = bersihkanMessages(payload?.messages);
+  if (messages.length === 0 || !messages.some((pesan) => pesan.role === "user")) {
+    response.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
+    response.end(JSON.stringify({ error: "Pertanyaan kosong." }));
+    return;
+  }
+
+  const base = (process.env.HELIPOD_BASE_URL || HELIPOD_DEFAULT_BASE).replace(/\/+$/, "");
+  const model = process.env.HELIPOD_MODEL || HELIPOD_DEFAULT_MODEL;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60_000);
+
+  try {
+    const upstream = await fetch(base + "/chat/completions", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + apiKey,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: Math.min(1, Math.max(0, Number(payload?.temperature) || 0.4)),
+        max_tokens: clampNumber(payload?.max_tokens, 64, 900, 300),
+        stream: false,
+      }),
+    });
+    const teks = await upstream.text();
+    if (!upstream.ok) {
+      log.warn?.("Asisten upstream error", upstream.status, teks.slice(0, 200));
+      response.writeHead(502, { "Content-Type": "application/json; charset=utf-8" });
+      response.end(
+        JSON.stringify({
+          error: upstream.status === 401 ? "Kunci AI ditolak." : "Layanan AI sedang bermasalah. Coba lagi.",
+        }),
+      );
+      return;
+    }
+    let data;
+    try {
+      data = JSON.parse(teks);
+    } catch {
+      throw new Error("Respons AI tidak valid.");
+    }
+    const jawaban = data?.choices?.[0]?.message?.content ?? "";
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    response.end(JSON.stringify({ text: String(jawaban).trim(), usage: data?.usage ?? null }));
+  } catch (error) {
+    log.warn?.("Asisten gagal", error?.message);
+    response.writeHead(504, { "Content-Type": "application/json; charset=utf-8" });
+    response.end(JSON.stringify({ error: "Asisten tidak merespons. Coba lagi." }));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function createGameServer(options = {}) {
   const rooms = new Map();
   const sessions = new Map();
   const queue = [];
   const contexts = new Map();
+  const asistenHits = new Map();
   const startedAt = Date.now();
   const log = options.log ?? console;
 
@@ -337,6 +503,15 @@ export function createGameServer(options = {}) {
             queue: queue.length,
           }),
         );
+        return;
+      }
+      if (url.pathname === "/api/asisten") {
+        if (request.method !== "POST") {
+          response.writeHead(405, { "Content-Type": "application/json; charset=utf-8" });
+          response.end(JSON.stringify({ error: "Gunakan POST." }));
+          return;
+        }
+        await tanganiAsisten(request, response, log, asistenHits);
         return;
       }
       if (request.method !== "GET" && request.method !== "HEAD") {

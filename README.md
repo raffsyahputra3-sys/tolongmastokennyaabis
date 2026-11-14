@@ -4,9 +4,10 @@ MOBA fisika **3v3** real-time yang bisa dimainkan **online lewat internet**: car
 lawan lewat matchmaking atau buat room privat dan bagikan kodenya ke teman. Slot
 yang belum terisi otomatis diisi bot, jadi pertandingan tetap jalan meski kamu
 bermain sendiri. Dilengkapi **Physics Clash**, **kuis menara**, modul belajar
-**Materi / Latihan / Latihan Harian**, server otoritatif, AI takeover saat
-disconnect, dan client desktop Electron. Semua soal wajib bertema fisika dan
-mekanik tempur memakai momentum, impuls, tumbukan, serta proyektil.
+**Materi / Latihan / Latihan Harian**, **Asisten Fisika** (chatbot AI), server
+otoritatif, AI takeover saat disconnect, dan client desktop Electron. Semua soal
+wajib bertema fisika dan mekanik tempur memakai momentum, impuls, tumbukan, serta
+proyektil.
 
 <p align="center">
   <a href="https://hackathon-tong-sampah.onrender.com">
@@ -35,6 +36,11 @@ biarkan aplikasi memakai alamat server bawaan. Build `main` ter-deploy otomatis
 (`autoDeploy: true` di `render.yaml`), jadi setiap push ke `main` langsung
 memperbarui versi online. Free tier tidur setelah tidak dipakai; kunjungan
 pertama bisa lambat beberapa detik.
+
+> **Asisten Fisika di server online:** tambahkan Environment Variable
+> `HELIPOD_API_KEY` pada layanan Render agar chatbot bisa menjawab. Tanpa key,
+> panel asisten menampilkan pesan belum dikonfigurasi dan fitur lain tetap
+> normal. Lihat [Asisten Fisika](#asisten-fisika-chatbot).
 
 **Native Android + online.** Tekan **Download APK Android**, pasang di HP, lalu
 alamat server online sudah terisi otomatis (ubah lewat ikon gerigi bila perlu).
@@ -138,10 +144,40 @@ Ketiganya berjalan di client dan tidak mengubah jalannya pertandingan.
 |---|---|
 | **MATERI** | Ringkasan fisika interaktif per bab: topik, rumus, contoh, kalkulator, dan kuis singkat. Progres tersimpan di perangkat. |
 | **LATIHAN** | Kuis per materi dengan nilai, ambang ketuntasan, status **tuntas/remedial**, dan skor terbaik. |
+| **ASISTEN FISIKA** | Chatbot AI: tanya materi atau kirim foto soal. Hemat token (retrieval 3 topik + template jawaban) dan hanya menjawab dari materi game. |
 | **Latihan Harian** | 5 soal baru setiap hari dengan pengingat di lobi dan runtutan (streak) hari berturut-turut. |
 
-Detail tiap fitur ada di `PRD-MATERI.md`, `PRD-LATIHAN.md`, dan
-`PRD-DAILY-LATIHAN.md`.
+Detail tiap fitur ada di `PRD-MATERI.md`, `PRD-LATIHAN.md`,
+`PRD-DAILY-LATIHAN.md`, `PRD-agent-pembuat-chatbot.md`, dan
+`PRD-efisiensi-jawaban-template.md`.
+
+### Asisten Fisika (chatbot)
+
+Asisten memanggil model **Qwen VL (OCR)** lewat gateway Helipod, tetapi:
+
+- API key **tidak pernah** dikirim ke browser. Client memanggil `POST /api/asisten`
+  di server game, dan server menambahkan key dari variabel lingkungan.
+- Server hanya meneruskan potongan materi yang relevan: materi dipecah menjadi
+  37 chunk (satu per topik) dan maksimal 3 chunk teratas ikut dikirim, bukan
+  seluruh 6 bab. Rata-rata system prompt turun dari 11.414 karakter (materi
+  penuh) menjadi ~2.200 karakter.
+- Jenis pertanyaan diklasifikasi di client (konsep, rumus, hitungan, bergambar,
+  di luar materi, tidak jelas) sehingga panjang dan suhu jawaban menyesuaikan.
+- Jawaban identik tanpa gambar dilayani dari `localStorage` (awalan `fisbot:`),
+  ada tombol **Jawab ulang** untuk memaksa panggilan baru.
+- Pertanyaan tak jelas dijawab lokal tanpa API. Mode debug: buka
+  `?asistenDebug=1`, atau set `localStorage["fisbot:debug"] = "1"`.
+
+Konfigurasi server (bukan di client):
+
+| Variabel | Fungsi |
+|---|---|
+| `HELIPOD_API_KEY` | Kunci gateway Helipod. Bila kosong, server mencoba berkas `~/.helipod_key`, lalu menjawab bahwa asisten belum dikonfigurasi. |
+| `HELIPOD_MODEL` | Model yang dipakai. Bawaan `qwen-vl-ocr`. |
+| `HELIPOD_BASE_URL` | Bawaan `https://ai.helipod.io/v1`. |
+
+> Asisten adalah fitur opsional: kalau key belum diisi, game tetap berjalan dan
+> panelnya hanya menampilkan pesan belum dikonfigurasi.
 
 ## Menghubungkan server internet
 
@@ -367,7 +403,8 @@ Electron shell
 - `client/input.js` — keyboard, mouse, joystick, latch ability.
 - `client/fx.js` / `client/lobbyfx.js` / `client/audio.js` — efek layar ultimate, efek kartu hero di lobi, dan audio.
 - `client/materi.js`, `client/latihan.js`, `client/daily-latihan.js` — modul belajar fisika (materi, latihan, latihan harian).
-- `server/index.js` — HTTP statis, health check, rate limit, routing pesan.
+- `client/asisten.js`, `client/asisten-data.js` — Asisten Fisika: retrieval chunk, klasifikasi jenis pertanyaan, template jawaban, cache, dan overlay chat.
+- `server/index.js` — HTTP statis, health check, rate limit, routing pesan, dan proxy `/api/asisten`.
 - `server/room.js` — state room, fisika, combat, Clash, kuis menara, disconnect/reconnect.
 - `server/bot.js` — AI takeover dan jawaban bot dengan akurasi terbatas.
 - `shared/` — konstanta, hero, fisika, minion, efek, bank soal, dan bank soal menara.
@@ -387,6 +424,8 @@ npm run check
   jawab, combat, dan keseimbangan hero.
 - `test/minions.test.js` / `test/fx.test.js` / `test/lobbyfx.test.js` — minion,
   efek layar, dan efek kartu lobi.
+- `test/asisten.test.js` — pemilihan chunk, klasifikasi jenis pertanyaan, dan
+  penghematan panjang system prompt Asisten Fisika.
 
 ## Keamanan dan batasan MVP
 
