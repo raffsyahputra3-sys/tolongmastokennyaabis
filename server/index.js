@@ -228,10 +228,25 @@ async function tanganiAsisten(request, response, log, asistenHits) {
     const teks = await upstream.text();
     if (!upstream.ok) {
       log.warn?.("Asisten upstream error", upstream.status, teks.slice(0, 200));
+      let kode = "";
+      try {
+        kode = String(JSON.parse(teks)?.error?.code ?? "").slice(0, 60);
+      } catch {
+        // Respons upstream bukan JSON; kode dibiarkan kosong.
+      }
+      // Pesan dibedakan supaya penyebab bisa dibaca dari UI/curl tanpa membuka log.
+      let pesan = "Layanan AI sedang bermasalah. Coba lagi.";
+      if (upstream.status === 401) pesan = "Kunci AI ditolak. Periksa HELIPOD_API_KEY.";
+      else if (upstream.status === 403 || kode === "key_spend_limit_reached")
+        pesan = "Kuota kunci AI habis atau dibatasi. Isi ulang atau ganti kuncinya.";
+      else if (upstream.status === 429) pesan = "Terlalu banyak permintaan ke layanan AI. Coba lagi nanti.";
+      else if (upstream.status === 404) pesan = "Model atau alamat layanan AI tidak ditemukan. Periksa HELIPOD_MODEL/HELIPOD_BASE_URL.";
       response.writeHead(502, { "Content-Type": "application/json; charset=utf-8" });
       response.end(
         JSON.stringify({
-          error: upstream.status === 401 ? "Kunci AI ditolak." : "Layanan AI sedang bermasalah. Coba lagi.",
+          error: pesan,
+          upstreamStatus: upstream.status,
+          upstreamCode: kode || null,
         }),
       );
       return;
