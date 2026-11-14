@@ -1,5 +1,8 @@
 import { AudioEngine } from "./audio.js";
 import { angleToward, collectHitEvents, hpTone, mergeAlert } from "./combat.js";
+import { initDailyLatihan, refreshDailyLatihan } from "./daily-latihan.js";
+import { initLatihan } from "./latihan.js";
+import { initMateri } from "./materi.js";
 import { SHOWCASE_MS } from "./lobbyfx.js";
 import { ScreenFx } from "./fx.js";
 import { GameInput } from "./input.js";
@@ -363,6 +366,7 @@ function showScreen(name) {
   document.body.dataset.screen = name;
   document.body.classList.toggle("in-match", name === "game");
   if (name === "game") renderer.resize();
+  if (name === "home") refreshDailyLatihan();
   setWakeLock(name === "game");
   updateInputEnabled();
 }
@@ -2478,6 +2482,9 @@ function init() {
   loadProfile();
   syncFxUI();
   bindFxSettings();
+  initMateri();
+  initLatihan();
+  initDailyLatihan();
   buildHeroPicker();
   selectHero(ui.heroId);
   syncAudioUI();
