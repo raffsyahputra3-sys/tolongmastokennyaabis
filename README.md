@@ -3,23 +3,44 @@
 MOBA fisika **3v3** real-time yang bisa dimainkan **online lewat internet**: cari
 lawan lewat matchmaking atau buat room privat dan bagikan kodenya ke teman. Slot
 yang belum terisi otomatis diisi bot, jadi pertandingan tetap jalan meski kamu
-bermain sendiri. Dilengkapi **Physics Clash**, server otoritatif, AI takeover saat
+bermain sendiri. Dilengkapi **Physics Clash**, **kuis menara**, modul belajar
+**Materi / Latihan / Latihan Harian**, server otoritatif, AI takeover saat
 disconnect, dan client desktop Electron. Semua soal wajib bertema fisika dan
 mekanik tempur memakai momentum, impuls, tumbukan, serta proyektil.
 
 <p align="center">
-  <a href="https://github.com/raffsyahputra3-sys/fisikAsik/releases/latest/download/fisikAsik.apk">
+  <a href="https://hackathon-tong-sampah.onrender.com">
+    <img alt="Main sekarang di server online" src="https://img.shields.io/badge/Main-Sekarang-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white">
+  </a>
+  <a href="https://github.com/raffsyahputra3-sys/hackathon-tong-sampah/releases/latest/download/fisikAsik.apk">
     <img alt="Download APK Android" src="https://img.shields.io/badge/Download-APK%20Android-3DDC84?style=for-the-badge&logo=android&logoColor=white">
   </a>
-  <a href="https://render.com/deploy?repo=https://github.com/raffsyahputra3-sys/fisikAsik">
+  <a href="https://render.com/deploy?repo=https://github.com/raffsyahputra3-sys/hackathon-tong-sampah">
     <img alt="Deploy server online" src="https://img.shields.io/badge/Deploy-Server%20Online-46E3B7?style=for-the-badge&logo=render&logoColor=white">
   </a>
 </p>
 
+## Sudah online
+
+Server game sudah berjalan di Render:
+
+| Layanan | Alamat |
+|---|---|
+| Game (browser / PWA) | https://hackathon-tong-sampah.onrender.com |
+| Health check | https://hackathon-tong-sampah.onrender.com/healthz |
+| WebSocket (dipakai APK) | `wss://hackathon-tong-sampah.onrender.com` |
+
+Buka alamat game di browser HP/laptop, atau tekan **Download APK Android** lalu
+biarkan aplikasi memakai alamat server bawaan. Build `main` ter-deploy otomatis
+(`autoDeploy: true` di `render.yaml`), jadi setiap push ke `main` langsung
+memperbarui versi online. Free tier tidur setelah tidak dipakai; kunjungan
+pertama bisa lambat beberapa detik.
+
 **Native Android + online.** Tekan **Download APK Android**, pasang di HP, lalu
-isi alamat server online (lihat [Server online](#server-online)). APK di-build
-otomatis oleh GitHub Actions setiap push ke `main` dan diunggah ke halaman
-[Releases](https://github.com/raffsyahputra3-sys/fisikAsik/releases).
+alamat server online sudah terisi otomatis (ubah lewat ikon gerigi bila perlu).
+APK di-build otomatis oleh GitHub Actions setiap push ke `main` dan diunggah ke
+halaman
+[Releases](https://github.com/raffsyahputra3-sys/hackathon-tong-sampah/releases).
 
 Dokumen produk lengkap ada di [PRD.md](./PRD.md).
 
@@ -45,10 +66,16 @@ Tanpa Electron, client juga dapat dibuka di browser melalui
 
 ## Server online
 
-APK dan pemain butuh satu server game yang bisa dijangkau dari internet. Pilih
-salah satu:
+Pemain dan APK butuh satu server game yang bisa dijangkau dari internet.
 
-### A. Permanen di Render (gratis, tombol Deploy)
+### A. Pakai server yang sudah online (langsung main)
+
+Buka **https://hackathon-tong-sampah.onrender.com** di browser, atau tempel
+alamat itu di aplikasi (ikon gerigi > **Alamat server**). Server ini juga
+menjadi alamat bawaan APK (`wss://hackathon-tong-sampah.onrender.com`), jadi
+APK yang di-build dari workflow ini langsung tersambung tanpa disetel lagi.
+
+### B. Deploy sendiri di Render (gratis, tombol Deploy)
 
 1. Tekan tombol **Deploy Server Online** di atas, lalu login Render.
 2. Render membaca `render.yaml` di repo ini dan menjalankan `npm run server`.
@@ -61,7 +88,7 @@ salah satu:
 > Free tier Render tidur setelah tidak dipakai; kunjungan pertama bisa lambat
 > beberapa detik. WebSocket tetap didukung.
 
-### B. Link publik sementara (tanpa daftar)
+### C. Link publik sementara (tanpa daftar)
 
 Jalankan di komputer:
 
@@ -95,6 +122,26 @@ server publik dari bagian [Server online](#server-online) (tombol Render atau
 `npm run online`), lalu semua pemain mengarahkan client ke alamat server
 tersebut. Sinyal tim (ketuk minimap) dan lineup kedua tim tersedia sepanjang
 pertandingan.
+
+**Kuis menara.** Menembak **menara** lawan juga membuka soal (bank soal fisika
+tingkat pemula, **tanpa batas waktu**; ikon `∞`). Menjawab benar meloloskan
+damage ke menara, menjawab salah membuat serangan gagal plus perlambatan, dan
+tombol **KELUAR** membatalkan serangan tanpa menghabiskan amunisi. Bank soal ada
+di `shared/turretQuestions.js`.
+
+## Belajar fisika: Materi, Latihan, dan Latihan Harian
+
+Di lobi ada panel **BELAJAR FISIKA** dengan tombol **MATERI** dan **LATIHAN**.
+Ketiganya berjalan di client dan tidak mengubah jalannya pertandingan.
+
+| Fitur | Isi |
+|---|---|
+| **MATERI** | Ringkasan fisika interaktif per bab: topik, rumus, contoh, kalkulator, dan kuis singkat. Progres tersimpan di perangkat. |
+| **LATIHAN** | Kuis per materi dengan nilai, ambang ketuntasan, status **tuntas/remedial**, dan skor terbaik. |
+| **Latihan Harian** | 5 soal baru setiap hari dengan pengingat di lobi dan runtutan (streak) hari berturut-turut. |
+
+Detail tiap fitur ada di `PRD-MATERI.md`, `PRD-LATIHAN.md`, dan
+`PRD-DAILY-LATIHAN.md`.
 
 ## Menghubungkan server internet
 
@@ -131,7 +178,7 @@ seperti systemd atau container orchestrator.
 ### Android — APK native (tombol download)
 
 1. Tekan tombol **Download APK Android** di bagian atas README (atau buka halaman
-   [Releases](https://github.com/raffsyahputra3-sys/fisikAsik/releases)).
+   [Releases](https://github.com/raffsyahputra3-sys/hackathon-tong-sampah/releases)).
 2. Buka file `fisikAsik.apk` di HP. Bila muncul peringatan, aktifkan **Izinkan
    dari sumber ini** / **Instal aplikasi tidak dikenal**.
 3. Buka aplikasi **Logicodix**. Saat diminta **alamat server**, tempel alamat
@@ -191,7 +238,8 @@ Hasil (MVP dan papan skor, tombol **Main Lagi** di kanan-bawah).
 ## APK Android native (Capacitor)
 
 APK siap pasang tersedia di
-[Releases](https://github.com/raffsyahputra3-sys/fisikAsik/releases). Build
+[Releases](https://github.com/raffsyahputra3-sys/hackathon-tong-sampah/releases)
+(tag `android-latest`). Build
 otomatis lewat GitHub Actions (`.github/workflows/android.yml`) setiap push ke
 `main`; hasilnya juga diunggah sebagai artifact **fisikAsik-apk**.
 
@@ -201,8 +249,10 @@ landscape, layar tidak padam saat bermain, tombol Kembali Android diarahkan ke m
 game, ikon dan splash sendiri. Game server tetap berjalan di komputer/VPS.
 
 Kalau ingin APK otomatis terhubung ke server tertentu, set repository variable
-`LOGICODIX_DEFAULT_SERVER` (mis. `https://fisikasik.onrender.com`) di GitHub
-sebelum build. Aplikasi juga tetap bisa mengganti alamat lewat ikon gerigi.
+`LOGICODIX_DEFAULT_SERVER` (mis. `https://hackathon-tong-sampah.onrender.com`)
+di GitHub sebelum build. Tanpa variable ini, APK native tetap memakai alamat
+bawaan `wss://hackathon-tong-sampah.onrender.com` (lihat `client/net.js`).
+Aplikasi juga tetap bisa mengganti alamat lewat ikon gerigi.
 
 Yang dibutuhkan untuk build lokal (tidak ikut di repo): **Android Studio**
 (membawa JDK 21 dan Android SDK). Capacitor 8 memakai compileSdk 36.
@@ -307,18 +357,20 @@ Electron shell
        └─ WebSocket ──> Node.js authoritative server
                           ├─ room / matchmaking
                           ├─ simulasi fisika 30 Hz
-                          ├─ validasi Physics Clash
+                          ├─ validasi Physics Clash + kuis menara
                           └─ AI takeover + reconnect 60 detik
 ```
 
-- `client/main.js` — UI, lobby, HUD, Clash overlay, hasil match, reconnect.
-- `client/render.js` — renderer arena dan portrait hero.
-- `client/net.js` — WebSocket, heartbeat, exponential backoff, resume sesi.
+- `client/main.js` — UI, lobby, HUD, overlay Clash/kuis, hasil match, reconnect.
+- `client/render.js` / `client/render3d.js` — renderer arena 2D dan 3D serta portrait hero.
+- `client/net.js` — WebSocket, heartbeat, exponential backoff, resume sesi, alamat server bawaan.
 - `client/input.js` — keyboard, mouse, joystick, latch ability.
+- `client/fx.js` / `client/lobbyfx.js` / `client/audio.js` — efek layar ultimate, efek kartu hero di lobi, dan audio.
+- `client/materi.js`, `client/latihan.js`, `client/daily-latihan.js` — modul belajar fisika (materi, latihan, latihan harian).
 - `server/index.js` — HTTP statis, health check, rate limit, routing pesan.
-- `server/room.js` — state room, fisika, combat, Clash, disconnect/reconnect.
+- `server/room.js` — state room, fisika, combat, Clash, kuis menara, disconnect/reconnect.
 - `server/bot.js` — AI takeover dan jawaban bot dengan akurasi terbatas.
-- `shared/` — konstanta, hero, fisika, bank soal yang dipakai kedua sisi.
+- `shared/` — konstanta, hero, fisika, minion, efek, bank soal, dan bank soal menara.
 
 ## Pengujian
 
@@ -331,6 +383,10 @@ npm run check
 - `test/questions.test.js` — validasi bank soal dan tingkat kesulitan.
 - `test/room.test.js` — jawaban valid/duplikat/terlambat, pemenang Clash,
   Momentum Loss, AI takeover, dan reconnect.
+- `test/duel.test.js` / `test/combat.test.js` / `test/balance.test.js` — duel
+  jawab, combat, dan keseimbangan hero.
+- `test/minions.test.js` / `test/fx.test.js` / `test/lobbyfx.test.js` — minion,
+  efek layar, dan efek kartu lobi.
 
 ## Keamanan dan batasan MVP
 
