@@ -10,7 +10,7 @@ wajib bertema fisika dan mekanik tempur memakai momentum, impuls, tumbukan, sert
 proyektil.
 
 <p align="center">
-  <a href="https://hackathon-tong-sampah.onrender.com">
+  <a href="https://gatravolt.onrender.com">
     <img alt="Main sekarang di server online" src="https://img.shields.io/badge/Main-Sekarang-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white">
   </a>
   <a href="https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/fisikAsik.apk">
@@ -27,9 +27,9 @@ Server game sudah berjalan di Render:
 
 | Layanan | Alamat |
 |---|---|
-| Game (browser / PWA) | https://hackathon-tong-sampah.onrender.com |
-| Health check | https://hackathon-tong-sampah.onrender.com/healthz |
-| WebSocket (dipakai APK) | `wss://hackathon-tong-sampah.onrender.com` |
+| Game (browser / PWA) | https://gatravolt.onrender.com |
+| Health check | https://gatravolt.onrender.com/healthz |
+| WebSocket (dipakai APK) | `wss://gatravolt.onrender.com` |
 
 Buka alamat game di browser HP/laptop, atau tekan **Download APK Android** lalu
 biarkan aplikasi memakai alamat server bawaan. Build `main` ter-deploy otomatis
@@ -76,9 +76,9 @@ Pemain dan APK butuh satu server game yang bisa dijangkau dari internet.
 
 ### A. Pakai server yang sudah online (langsung main)
 
-Buka **https://hackathon-tong-sampah.onrender.com** di browser, atau tempel
+Buka **https://gatravolt.onrender.com** di browser, atau tempel
 alamat itu di aplikasi (ikon gerigi > **Alamat server**). Server ini juga
-menjadi alamat bawaan APK (`wss://hackathon-tong-sampah.onrender.com`), jadi
+menjadi alamat bawaan APK (`wss://gatravolt.onrender.com`), jadi
 APK yang di-build dari workflow ini langsung tersambung tanpa disetel lagi.
 
 ### B. Deploy sendiri di Render (gratis, tombol Deploy)
@@ -290,9 +290,9 @@ landscape, layar tidak padam saat bermain, tombol Kembali Android diarahkan ke m
 game, ikon dan splash sendiri. Game server tetap berjalan di komputer/VPS.
 
 Kalau ingin APK otomatis terhubung ke server tertentu, set repository variable
-`LOGICODIX_DEFAULT_SERVER` (mis. `https://hackathon-tong-sampah.onrender.com`)
+`LOGICODIX_DEFAULT_SERVER` (mis. `https://gatravolt.onrender.com`)
 di GitHub sebelum build. Tanpa variable ini, APK native tetap memakai alamat
-bawaan `wss://hackathon-tong-sampah.onrender.com` (lihat `client/net.js`).
+bawaan `wss://gatravolt.onrender.com` (lihat `client/net.js`).
 Aplikasi juga tetap bisa mengganti alamat lewat ikon gerigi.
 
 Yang dibutuhkan untuk build lokal (tidak ikut di repo): **Android Studio**
