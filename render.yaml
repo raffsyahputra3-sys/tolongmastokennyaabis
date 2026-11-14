@@ -10,3 +10,7 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # Kunci Helipod diisi lewat dashboard Render (sync: false = tidak disimpan di git).
+      # Tanpa ini, Asisten Fisiko menjawab "belum dikonfigurasi" dan fitur lain tetap normal.
+      - key: HELIPOD_API_KEY
+        sync: false
