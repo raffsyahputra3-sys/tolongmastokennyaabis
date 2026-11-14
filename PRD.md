@@ -15,7 +15,7 @@
 
 ## 1. Ringkasan Produk
 
-Logicodix: Momentum Arena adalah MOBA **3v3** real-time di mana gerak,
+GatraVolt adalah MOBA **3v3** real-time di mana gerak,
 pertempuran, dan kerusakan mengikuti hukum fisika, sementara pengetahuan fisika
 menjadi mekanik tempur. Setiap pemain mengendalikan satu hero, bekerja sama
 dengan dua rekan di tiga lane, menghancurkan menara dan Nexus lawan.

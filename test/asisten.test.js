@@ -133,7 +133,7 @@ test("serverHttpBase: halaman dari server pakai alamat relatif, APK native pakai
   try {
     globalThis.localStorage = { getItem: () => null };
     globalThis.window = {
-      location: { search: "", protocol: "https:", host: "hackathon-tong-sampah.onrender.com" },
+      location: { search: "", protocol: "https:", host: "gatravolt.onrender.com" },
     };
     // Dibuka di browser/PWA dari server game: alamat relatif sudah benar.
     globalThis.document = { body: { dataset: {} } };
@@ -141,7 +141,7 @@ test("serverHttpBase: halaman dari server pakai alamat relatif, APK native pakai
 
     // Dibuka sebagai APK native: halaman dari perangkat, butuh alamat absolut.
     globalThis.document = { body: { dataset: { native: "1" } } };
-    assert.equal(serverHttpBase(), "https://hackathon-tong-sampah.onrender.com");
+    assert.equal(serverHttpBase(), "https://gatravolt.onrender.com");
   } finally {
     for (const [key, value] of Object.entries(simpan)) {
       if (value === undefined) delete globalThis[key];

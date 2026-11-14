@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: fisikasik
+    name: gatravolt
     runtime: node
     plan: free
     buildCommand: npm ci --omit=dev

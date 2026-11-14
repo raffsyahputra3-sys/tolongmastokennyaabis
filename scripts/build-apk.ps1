@@ -17,5 +17,5 @@ cmd /c ".\gradlew.bat assembleDebug --no-daemon"
 if ($LASTEXITCODE -ne 0) { throw "Build gagal (exit $LASTEXITCODE)" }
 
 New-Item -ItemType Directory -Force "$root\dist" | Out-Null
-Copy-Item "$root\android\app\build\outputs\apk\debug\app-debug.apk" "$root\dist\Logicodix-debug.apk" -Force
-Write-Host "APK siap: $root\dist\Logicodix-debug.apk"
+Copy-Item "$root\android\app\build\outputs\apk\debug\app-debug.apk" "$root\dist\GatraVolt-debug.apk" -Force
+Write-Host "APK siap: $root\dist\GatraVolt-debug.apk"

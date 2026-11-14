@@ -1,5 +1,5 @@
 -- ============================================================================
--- Logicodix — skema akun pemain di Supabase
+-- GatraVolt — skema akun pemain di Supabase
 -- PRD: PRD-LOGIN.md
 --
 -- Cara pakai:

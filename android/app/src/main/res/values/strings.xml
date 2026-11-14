@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Logicodix</string>
-    <string name="title_activity_main">Logicodix</string>
+    <string name="app_name">GatraVolt</string>
+    <string name="title_activity_main">GatraVolt</string>
     <string name="package_name">com.logicodix.momentumarena</string>
     <string name="custom_url_scheme">com.logicodix.momentumarena</string>
 </resources>

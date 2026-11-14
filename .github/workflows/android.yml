@@ -52,12 +52,12 @@ jobs:
           ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Prepare APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk fisikAsik.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk GatraVolt.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: fisikAsik-apk
-          path: fisikAsik.apk
+          name: GatraVolt-apk
+          path: GatraVolt.apk
           if-no-files-found: error
 
       - name: Publish APK release
@@ -66,11 +66,11 @@ jobs:
           tag_name: android-latest
           name: Android APK terbaru
           body: |
-            APK Android terbaru untuk Logicodix / fisikAsik.
+            APK Android terbaru untuk GatraVolt.
 
             Pasang di Android (izinkan "Instal aplikasi tidak dikenal"), lalu isi
             alamat server online saat aplikasi pertama dibuka.
 
             Build otomatis dari commit ${{ github.sha }}.
-          files: fisikAsik.apk
+          files: GatraVolt.apk
           make_latest: true

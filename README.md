@@ -3,7 +3,7 @@
 - **Tim:** *tolong mas tokennya abis* — Gestia Deviana, Rafi Praja Syahputra, Muhammad Hadist Rifannan
 - **Kategori:** Web (PWA) + Mobile (APK Android)
 - **Nama aplikasi:** GatraVolt — Game Pembelajaran Fisika Berbasis MOBA
-- **Aplikasi online:** <https://hackathon-tong-sampah.onrender.com>
+- **Aplikasi online:** <https://gatravolt.onrender.com>
 
 ## Ringkasan
 
@@ -26,10 +26,10 @@ impuls — dan guru fisika yang mencari media ajar interaktif. Pemain umum yang
 menyukai MOBA juga bisa bermain tanpa latar belakang fisika mendalam.
 
 <p align="center">
-  <a href="https://hackathon-tong-sampah.onrender.com">
+  <a href="https://gatravolt.onrender.com">
     <img alt="Main sekarang di server online" src="https://img.shields.io/badge/Main-Sekarang-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white">
   </a>
-  <a href="https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/fisikAsik.apk">
+  <a href="https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases/latest/download/GatraVolt.apk">
     <img alt="Download APK Android" src="https://img.shields.io/badge/Download-APK%20Android-3DDC84?style=for-the-badge&logo=android&logoColor=white">
   </a>
   <a href="https://render.com/deploy?repo=https://github.com/raffsyahputra3-sys/tolongmastokennyaabis">
@@ -79,9 +79,9 @@ Server game sudah berjalan di Render:
 
 | Layanan | Alamat |
 |---|---|
-| Game (browser / PWA) | https://hackathon-tong-sampah.onrender.com |
-| Health check | https://hackathon-tong-sampah.onrender.com/healthz |
-| WebSocket (dipakai APK) | `wss://hackathon-tong-sampah.onrender.com` |
+| Game (browser / PWA) | https://gatravolt.onrender.com |
+| Health check | https://gatravolt.onrender.com/healthz |
+| WebSocket (dipakai APK) | `wss://gatravolt.onrender.com` |
 
 Buka alamat game di browser HP/laptop, atau tekan **Download APK Android** lalu
 biarkan aplikasi memakai alamat server bawaan. Build `main` ter-deploy otomatis
@@ -136,9 +136,9 @@ Pemain dan APK butuh satu server game yang bisa dijangkau dari internet.
 
 ### A. Pakai server yang sudah online (langsung main)
 
-Buka **https://hackathon-tong-sampah.onrender.com** di browser, atau tempel
+Buka **https://gatravolt.onrender.com** di browser, atau tempel
 alamat itu di aplikasi (ikon gerigi > **Alamat server**). Server ini juga
-menjadi alamat bawaan APK (`wss://hackathon-tong-sampah.onrender.com`), jadi
+menjadi alamat bawaan APK (`wss://gatravolt.onrender.com`), jadi
 APK yang di-build dari workflow ini langsung tersambung tanpa disetel lagi.
 
 ### B. Deploy sendiri di Render (gratis, tombol Deploy)
@@ -274,7 +274,7 @@ Prinsip etis yang dipegang:
    otomatis, dan fungsi `delete_my_account()`.
 3. Salin **Project URL** dan **anon key** dari **Settings → API**.
 4. Buka **Authentication → URL Configuration**, isi **Site URL** dengan alamat
-   game (mis. `https://hackathon-tong-sampah.onrender.com`) dan tambahkan alamat
+   game (mis. `https://gatravolt.onrender.com`) dan tambahkan alamat
    yang sama ke **Redirect URLs**. Tanpa ini, tautan verifikasi email akan
    mengarah ke `http://localhost:3000` dan tidak bisa dibuka.
 5. Isi sebagai environment variable server game:
@@ -331,11 +331,11 @@ seperti systemd atau container orchestrator.
 
 1. Tekan tombol **Download APK Android** di bagian atas README (atau buka halaman
    [Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)).
-2. **Hapus dulu** aplikasi Logicodix yang lama. Kunci debug dibuat ulang di setiap
+2. **Hapus dulu** aplikasi GatraVolt yang lama. Kunci debug dibuat ulang di setiap
    build, jadi memasang di atas versi lama akan gagal (*"App not installed"*).
-3. Buka file `fisikAsik.apk` di HP. Bila muncul peringatan, aktifkan **Izinkan
+3. Buka file `GatraVolt.apk` di HP. Bila muncul peringatan, aktifkan **Izinkan
    dari sumber ini** / **Instal aplikasi tidak dikenal**.
-4. Buka aplikasi **Logicodix**. Alamat server online sudah terisi otomatis; ubah
+4. Buka aplikasi **GatraVolt**. Alamat server online sudah terisi otomatis; ubah
    lewat ikon **gerigi** bila perlu.
 5. Masuk lewat **CARI LAWAN** (matchmaking) atau **BUAT ROOM** lalu bagikan kode
    ke teman.
@@ -394,7 +394,7 @@ APK siap pasang tersedia di
 [Releases](https://github.com/raffsyahputra3-sys/tolongmastokennyaabis/releases)
 (tag `android-latest`). Build
 otomatis lewat GitHub Actions (`.github/workflows/android.yml`) setiap push ke
-`main`; hasilnya juga diunggah sebagai artifact **fisikAsik-apk**.
+`main`; hasilnya juga diunggah sebagai artifact **GatraVolt-apk**.
 
 Proyek Android lengkap ada di `android/` (paket `com.logicodix.momentumarena`).
 Aplikasi membungkus client web di WebView native: layar penuh immersive, terkunci
@@ -402,9 +402,9 @@ landscape, layar tidak padam saat bermain, tombol Kembali Android diarahkan ke m
 game, ikon dan splash sendiri. Game server tetap berjalan di komputer/VPS.
 
 Kalau ingin APK otomatis terhubung ke server tertentu, set repository variable
-`LOGICODIX_DEFAULT_SERVER` (mis. `https://hackathon-tong-sampah.onrender.com`)
+`LOGICODIX_DEFAULT_SERVER` (mis. `https://gatravolt.onrender.com`)
 di GitHub sebelum build. Tanpa variable ini, APK native tetap memakai alamat
-bawaan `wss://hackathon-tong-sampah.onrender.com` (lihat `client/net.js`).
+bawaan `wss://gatravolt.onrender.com` (lihat `client/net.js`).
 Aplikasi juga tetap bisa mengganti alamat lewat ikon gerigi.
 
 Yang dibutuhkan untuk build lokal (tidak ikut di repo): **Android Studio**
@@ -558,7 +558,7 @@ npm run check
 
 Autentikasi memakai **Supabase** dan bersifat **opsional**. Untuk mencoba aplikasi,
 juri **tidak perlu akun sama sekali** — cukup buka
-<https://hackathon-tong-sampah.onrender.com>, lalu tekan **CARI LAWAN** atau
+<https://gatravolt.onrender.com>, lalu tekan **CARI LAWAN** atau
 **BUAT ROOM** dan bermain sebagai tamu dengan fitur penuh. Tombol **MASUK** hanya
 untuk menyimpan nama tampilan dan progres belajar lintas perangkat.
 
