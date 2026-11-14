@@ -1,4 +1,4 @@
-// Fitur Asisten Fisika: chatbot hemat token (retrieval chunk + template jawaban).
+// Fitur Asisten Fisika (Fisiko): chatbot hemat token (retrieval chunk + template jawaban).
 // PRD: PRD-agent-pembuat-chatbot.md + PRD-efisiensi-jawaban-template.md
 import { CHUNKS, DAFTAR_TOPIK, TOTAL_KARAKTER_MATERI, normalisasi } from "./asisten-data.js";
 
@@ -17,6 +17,36 @@ try {
 } catch {
   // localStorage may be unavailable.
 }
+
+const SARAN = [
+  "Jelaskan Hukum Newton",
+  "Rumus energi kinetik",
+  "Cara hitung rangkaian paralel",
+  "Apa itu efek Doppler?",
+];
+
+// Maskot Fisiko: rubah oranye dengan orbit elektron kecil.
+const FOX_SVG =
+  '<svg class="fisiko-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+  '<ellipse cx="50" cy="52" rx="48" ry="13" fill="none" stroke="#60a5fa" stroke-opacity=".45" stroke-width="1.5" transform="rotate(-20 50 52)"/>' +
+  '<path d="M72 82 Q104 84 97 50 Q89 68 70 68 Z" fill="#f97316"/>' +
+  '<path d="M97 50 Q94 60 88 64 Q98 63 97 50 Z" fill="#fff7ed"/>' +
+  '<polygon points="16,42 22,6 47,28" fill="#f97316"/>' +
+  '<polygon points="84,42 78,6 53,28" fill="#f97316"/>' +
+  '<polygon points="23,36 26,16 38,28" fill="#7c2d12"/>' +
+  '<polygon points="77,36 74,16 62,28" fill="#7c2d12"/>' +
+  '<path d="M50 90 L12 54 Q8 36 28 30 Q50 22 72 30 Q92 36 88 54 Z" fill="#fb923c"/>' +
+  '<path d="M50 90 L12 54 Q30 64 50 60 Q70 64 88 54 Z" fill="#fff7ed"/>' +
+  '<polygon points="52,30 45,42 50,42 47,52 56,38 51,38" fill="#fde047"/>' +
+  '<g class="fisiko-eyes">' +
+  '<g class="fisiko-eye"><circle cx="34" cy="50" r="5" fill="#1e293b"/><circle cx="35.5" cy="48.3" r="1.6" fill="#fff"/></g>' +
+  '<g class="fisiko-eye"><circle cx="66" cy="50" r="5" fill="#1e293b"/><circle cx="67.5" cy="48.3" r="1.6" fill="#fff"/></g>' +
+  "</g>" +
+  '<ellipse cx="50" cy="73" rx="4" ry="3" fill="#1e293b"/>' +
+  '<ellipse class="fisiko-mouth" cx="50" cy="80" rx="4" ry="1.4" fill="#7c2d12"/>' +
+  '<circle r="3" fill="#60a5fa">' +
+  '<animateMotion dur="3.4s" repeatCount="indefinite" rotate="auto" path="M2 52 a48 13 0 1 0 96 0 a48 13 0 1 0 -96 0"/>' +
+  "</circle></svg>";
 
 /* ---------------- Template jawaban (PRD 5.4 & 5.5) ---------------- */
 
@@ -127,10 +157,10 @@ export function jenisPertanyaan(teks, adaGambar, adaChunk) {
 export function rakitSystemPrompt(jenis, chunks, teks = "") {
   const template = TEMPLATE[jenis] ?? TEMPLATE.T1;
   const bagian = [
-    "Kamu adalah asisten belajar Fisika di game Logicodix. Jawab dalam bahasa Indonesia santai, singkat, dan jelas.",
+    "Kamu adalah Fisiko, rubah pintar yang menjadi asisten belajar Fisika di game Logicodix. Jawab dalam bahasa Indonesia santai, singkat, dan jelas.",
     "Gunakan HANYA isi MATERI RELEVAN di bawah. Jangan memakai pengetahuan lain, jangan mengarang rumus, angka, satuan, atau contoh. Rumus ditulis persis seperti materi.",
     "Kalau MATERI RELEVAN kosong, jangan menjelaskan apa pun: ikuti saja instruksi format di bagian akhir.",
-    "Tulis jawaban sebagai teks biasa, tanpa Markdown (jangan pakai **, #, atau bullet -) dan tanpa LaTeX (jangan pakai $, \\frac, atau \\[ \\]). Contoh benar: Ek = ½mv².",
+    "Tulis jawaban sebagai teks biasa (boleh menebalkan dengan **dua bintang**), tanpa LaTeX (jangan pakai $, \\frac, atau \\[ \\]).",
     "DAFTAR TOPIK MATERI (batas materi game ini):",
     DAFTAR_TOPIK.join("\n"),
   ];
@@ -155,7 +185,7 @@ function kunciCache(teks) {
 
 function bacaCache(teks) {
   try {
-    const raw = window.localStorage?.getItem(kunciCache(teks));
+    const raw = globalThis.localStorage?.getItem(kunciCache(teks));
     if (!raw) return null;
     const data = JSON.parse(raw);
     return typeof data?.jawaban === "string" ? data : null;
@@ -166,7 +196,7 @@ function bacaCache(teks) {
 
 function tulisCache(teks, data) {
   try {
-    window.localStorage?.setItem(kunciCache(teks), JSON.stringify(data));
+    globalThis.localStorage?.setItem(kunciCache(teks), JSON.stringify(data));
   } catch {
     // Cache opsional; abaikan bila storage penuh/tidak tersedia.
   }
@@ -174,10 +204,51 @@ function tulisCache(teks, data) {
 
 function hapusCache(teks) {
   try {
-    window.localStorage?.removeItem(kunciCache(teks));
+    globalThis.localStorage?.removeItem(kunciCache(teks));
   } catch {
     // Ignore.
   }
+}
+
+/* ---------------- Bersihkan & format jawaban ---------------- */
+
+// Buang sisa penanda LaTeX, sisakan penebalan ** dan `kode` untuk dirender.
+export function rapikanJawaban(teks) {
+  return String(teks ?? "")
+    .replace(/\\\[|\\\]|\\\(|\\\)/g, "")
+    .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, "($1)/($2)")
+    .replace(/\\text\{([^{}]*)\}/g, "$1")
+    .replace(/\\times/g, "×")
+    .replace(/\\cdot/g, "·")
+    .replace(/\\mathrm\{([^{}]*)\}/g, "$1")
+    .replace(/\\/g, "")
+    .replace(/^\s*[-*]\s+/gm, "• ")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/^[ \t]+/gm, "")
+    .replace(/[ \t]+$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+// Aman: escape HTML dulu, baru izinkan **tebal** dan `kode`.
+export function formatJawaban(teks) {
+  return String(teks ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*(?!\*)([^*\n]*[A-Za-z][^*\n]*)\*/g, "<strong>$1</strong>");
+}
+
+/* ---------------- Jawaban lokal tanpa API ---------------- */
+// T6 ("tidak jelas") dijawab di klien: hasilnya selalu sama, tidak perlu token,
+// dan tidak berisiko model menjelaskan materi padahal pertanyaannya belum jelas.
+const CONTOH_TOPIK_T6 = ["Hukum Newton", "Energi Kinetik", "Rangkaian Paralel"];
+
+export function jawabanLokal(jenis) {
+  if (jenis !== "T6") return null;
+  return "Maksudmu topik yang mana? Coba tanya:\n• " + CONTOH_TOPIK_T6.join("\n• ");
 }
 
 /* ---------------- Kompres gambar soal agar hemat token ---------------- */
@@ -208,37 +279,6 @@ async function siapkanGambar(file) {
   }
 }
 
-/* ---------------- Rapikan format jawaban (teks biasa, tanpa Markdown/LaTeX) ---------------- */
-
-export function rapikanJawaban(teks) {
-  return String(teks ?? "")
-    .replace(/\\\[|\\\]|\\\(|\\\)/g, "")
-    .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, "($1)/($2)")
-    .replace(/\\text\{([^{}]*)\}/g, "$1")
-    .replace(/\\times/g, "×")
-    .replace(/\\cdot/g, "·")
-    .replace(/\\mathrm\{([^{}]*)\}/g, "$1")
-    .replace(/\*\*(.+?)\*\*/g, "$1")
-    .replace(/__(.+?)__/g, "$1")
-    .replace(/\\/g, "")
-    .replace(/^\s*[-*]\s+/gm, "• ")
-    .replace(/[ \t]{2,}/g, " ")
-    .replace(/^[ \t]+/gm, "")
-    .replace(/[ \t]+$/gm, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-/* ---------------- Jawaban lokal tanpa API ---------------- */
-// T6 ("tidak jelas") dijawab di klien: hasilnya selalu sama, tidak perlu token,
-// dan tidak berisiko model menjelaskan materi padahal pertanyaannya belum jelas.
-const CONTOH_TOPIK_T6 = ["Hukum Newton", "Energi Kinetik", "Rangkaian Paralel"];
-
-export function jawabanLokal(jenis) {
-  if (jenis !== "T6") return null;
-  return "Maksudmu topik yang mana? Coba tanya:\n• " + CONTOH_TOPIK_T6.join("\n• ");
-}
-
 /* ---------------- Panggilan API lewat server game ---------------- */
 
 async function tanyaServer(messages, jenis) {
@@ -264,24 +304,39 @@ async function tanyaServer(messages, jenis) {
   return { teks, usage: data?.usage ?? null };
 }
 
-/* ---------------- UI ---------------- */
-
-const SARAN = [
-  "Jelaskan Hukum Newton",
-  "Rumus energi kinetik",
-  "Cara hitung rangkaian paralel",
-  "Apa itu efek Doppler?",
-];
+/* ---------------- UI: maskot Fisiko ---------------- */
 
 let els = null;
 let riwayat = [];
 let chunkTerakhir = null;
 let gambarSiap = null;
 let sibuk = false;
+let timerIdle = null;
+
+function fisikoSay(state, teks, ms) {
+  if (!els) return;
+  clearTimeout(timerIdle);
+  els.mascot.dataset.state = state;
+  if (teks) els.bubble.textContent = teks;
+  if (ms) {
+    timerIdle = window.setTimeout(() => {
+      els.mascot.dataset.state = "idle";
+      els.bubble.textContent = "Ada yang mau ditanya?";
+    }, ms);
+  }
+}
 
 function tambahPesan(role, teks, gambar) {
+  const row = document.createElement("div");
+  row.className = "fisiko-row " + (role === "user" ? "me" : "bot");
+  if (role !== "user") {
+    const avatar = document.createElement("div");
+    avatar.className = "fisiko-av";
+    avatar.textContent = "🦊";
+    row.appendChild(avatar);
+  }
   const bubble = document.createElement("div");
-  bubble.className = "asisten-msg " + (role === "user" ? "me" : "bot");
+  bubble.className = "fisiko-msg";
   if (gambar) {
     const img = document.createElement("img");
     img.src = gambar;
@@ -289,35 +344,52 @@ function tambahPesan(role, teks, gambar) {
     bubble.appendChild(img);
   }
   const body = document.createElement("div");
-  body.className = "asisten-text";
-  body.textContent = teks;
+  body.className = "fisiko-text";
   bubble.appendChild(body);
-  els.log.appendChild(bubble);
+  row.appendChild(bubble);
+  els.log.appendChild(row);
+
+  // Tipe balasan: teks biasa (aman) atau HTML yang sudah diformat.
+  body.textContent = teks;
   els.log.scrollTop = els.log.scrollHeight;
   return body;
 }
 
+function tambahTitikTunggu() {
+  const tunggu = tambahPesan("bot", "");
+  tunggu.classList.add("fisiko-q");
+  tunggu.innerHTML = '<span class="fisiko-dots"><i></i><i></i><i></i></span>';
+  return tunggu;
+}
+
 function tambahCatatanDebug(teks) {
   const note = document.createElement("div");
-  note.className = "asisten-debug";
+  note.className = "fisiko-debug";
   note.textContent = teks;
   els.log.appendChild(note);
   els.log.scrollTop = els.log.scrollHeight;
 }
 
-function tambahJawabUlang(teksPertanyaan, teksGambar) {
+function tambahJawabUlang(teksPertanyaan) {
   const tombol = document.createElement("button");
   tombol.type = "button";
-  tombol.className = "asisten-ulang";
+  tombol.className = "fisiko-ulang";
   tombol.textContent = "Jawab ulang";
   tombol.addEventListener("click", () => {
     hapusCache(teksPertanyaan);
     tombol.disabled = true;
-    kirimPertanyaan(teksPertanyaan, teksGambar, { lewatiCache: true, ulang: true });
+    kirimPertanyaan(teksPertanyaan, null, { lewatiCache: true, ulang: true });
   });
   els.log.appendChild(tombol);
   els.log.scrollTop = els.log.scrollHeight;
 }
+
+function tampilkanJawaban(elemen, teks) {
+  elemen.classList.remove("fisiko-q");
+  elemen.innerHTML = formatJawaban(teks);
+}
+
+/* ---------------- UI: alur tanya jawab ---------------- */
 
 async function kirimPertanyaan(teks, gambar, opsi = {}) {
   if (sibuk) return;
@@ -340,9 +412,10 @@ async function kirimPertanyaan(teks, gambar, opsi = {}) {
 
   const cache = gambar || opsi.lewatiCache ? null : bacaCache(isi);
   if (cache) {
-    tambahPesan("bot", cache.jawaban);
+    tampilkanJawaban(tambahPesan("bot", ""), cache.jawaban);
     if (CONFIG.DEBUG) tambahCatatanDebug("dari cache · jenis " + cache.jenis + " · prompt " + cache.promptKarakter + " karakter");
-    tambahJawabUlang(isi, null);
+    tambahJawabUlang(isi);
+    fisikoSay("talking", "Ini yang tadi ya!", 2200);
     riwayat.push({ role: "user", content: isi }, { role: "assistant", content: cache.jawaban });
     riwayat = riwayat.slice(-CONFIG.MAX_HISTORY);
     return;
@@ -354,16 +427,16 @@ async function kirimPertanyaan(teks, gambar, opsi = {}) {
 
   const lokal = jawabanLokal(jenis);
   if (lokal) {
-    tambahPesan("bot", lokal);
+    tampilkanJawaban(tambahPesan("bot", ""), lokal);
     if (CONFIG.DEBUG) tambahCatatanDebug(jenis + " (" + TEMPLATE[jenis].nama + ") · dijawab lokal tanpa API");
     tulisCache(isi, { jawaban: lokal, jenis, promptKarakter: 0, at: Date.now() });
+    fisikoSay("talking", "Maksudmu yang mana ya?", 2600);
     riwayat.push({ role: "user", content: isi }, { role: "assistant", content: lokal });
     riwayat = riwayat.slice(-CONFIG.MAX_HISTORY);
     return;
   }
 
   const system = rakitSystemPrompt(jenis, chunks, isi);
-
   const isiUser = gambar
     ? [
         { type: "text", text: isi || "Baca dan selesaikan soal pada gambar ini." },
@@ -376,19 +449,22 @@ async function kirimPertanyaan(teks, gambar, opsi = {}) {
     { role: "user", content: isiUser },
   ];
 
-  const tunggu = tambahPesan("bot", "Sebentar, lagi mikir...");
+  const tunggu = tambahTitikTunggu();
   sibuk = true;
   els.send.disabled = true;
+  fisikoSay("thinking", gambar ? "Aku baca gambarnya dulu..." : "Hmm, aku hitung dulu...");
 
   try {
     const { teks: jawaban, usage } = await tanyaServer(messages, jenis);
-    tunggu.textContent = jawaban;
+    tampilkanJawaban(tunggu, jawaban);
     riwayat.push({ role: "user", content: isi || "(mengirim gambar soal)" }, { role: "assistant", content: jawaban });
     riwayat = riwayat.slice(-CONFIG.MAX_HISTORY);
 
     if (!gambar) {
       tulisCache(isi, { jawaban, jenis, promptKarakter: system.length, at: Date.now() });
     }
+
+    fisikoSay("talking", "Nih jawabannya!", Math.min(5000, Math.max(1800, jawaban.length * 25)));
 
     if (CONFIG.DEBUG) {
       const potong = Math.max(0, 100 - Math.round((system.length / Math.max(1, TOTAL_KARAKTER_MATERI)) * 100));
@@ -408,13 +484,15 @@ async function kirimPertanyaan(teks, gambar, opsi = {}) {
           "%)" +
           tokenInfo,
       );
-      if (window.console?.log) {
-        console.log("[asisten] system prompt", jenis, system.length, "karakter\n" + system);
+      if (globalThis.console?.log) {
+        console.log("[fisiko] system prompt", jenis, system.length, "karakter\n" + system);
       }
     }
   } catch (error) {
+    tunggu.classList.remove("fisiko-q");
     tunggu.classList.add("err");
     tunggu.textContent = "Gagal: " + (error?.message ?? "tidak diketahui") + ". Coba kirim ulang.";
+    fisikoSay("idle", "Waduh, koneksi bermasalah. Coba lagi ya!", 4000);
   } finally {
     sibuk = false;
     els.send.disabled = false;
@@ -428,6 +506,7 @@ function open() {
   els.overlay.classList.remove("hidden");
   els.input.focus?.();
   els.log.scrollTop = els.log.scrollHeight;
+  fisikoSay("idle", "Mau tanya apa hari ini?");
 }
 
 function close() {
@@ -437,38 +516,50 @@ function close() {
 export function initAsisten() {
   const overlay = document.getElementById("asistenOverlay");
   const openBtn = document.getElementById("asistenBtn");
-  if (!overlay || !openBtn) return;
+  const lobbyBtn = document.getElementById("fisikoBtn");
+  if (!overlay || (!openBtn && !lobbyBtn)) return;
 
   overlay.innerHTML =
-    '<div class="belajar-shell asisten-shell">' +
-      '<aside class="asisten-side">' +
-        '<div class="belajar-head">' +
-          '<div><span class="eyebrow">BELAJAR</span><h2>ASISTEN FISIKA</h2><p class="belajar-sub">tanya materi, atau kirim foto soal</p></div>' +
+    '<div class="fisiko-shell">' +
+      '<div class="fisiko-symbols" aria-hidden="true">' +
+        '<span style="top:6%;left:5%">F = ma</span>' +
+        '<span style="top:20%;right:6%;animation-delay:-4s">E = mc²</span>' +
+        '<span style="top:46%;left:2%;animation-delay:-8s">V = IR</span>' +
+        '<span style="top:62%;right:4%;animation-delay:-2s">v = λf</span>' +
+        '<span style="bottom:14%;left:10%;animation-delay:-6s">Ek = ½mv²</span>' +
+        '<span style="bottom:26%;right:12%;animation-delay:-10s">P = ρgh</span>' +
+      "</div>" +
+      '<header class="fisiko-head">' +
+        '<div class="fisiko-id" data-state="idle">' +
+          '<div class="fisiko-fox-wrap">' +
+            FOX_SVG +
+            '<div class="fisiko-shadow"></div>' +
+          "</div>" +
+          '<div class="fisiko-info">' +
+            '<div class="fisiko-name">Fisiko <span class="fisiko-live" title="Online"></span><span class="fisiko-role">Asisten Fisika</span></div>' +
+            '<div class="fisiko-sub">Kinematika · Energi · Listrik · Gelombang · Optik · Magnet &amp; Fluida</div>' +
+            '<div class="fisiko-bubble">Halo! Aku Fisiko 🦊</div>' +
+          "</div>" +
           '<button class="belajar-close" type="button" data-close aria-label="Tutup">✕</button>' +
-        '</div>' +
-        '<div class="asisten-tips">' +
-          '<p class="asisten-tip-title">Contoh pertanyaan</p>' +
-          '<div class="asisten-chips"></div>' +
-        '</div>' +
-        '<p class="asisten-note">Jawaban hanya memakai materi game (6 bab). Di luar itu asisten menawarkan topik terdekat.</p>' +
-      '</aside>' +
-      '<main class="asisten-main">' +
-        '<div class="asisten-log" aria-live="polite"></div>' +
-        '<form class="asisten-form">' +
-          '<button type="button" class="asisten-pick" aria-label="Kirim gambar soal">📷</button>' +
-          '<input type="file" class="asisten-file" accept="image/*" hidden>' +
-          '<input class="asisten-input" placeholder="Tulis pertanyaan fisika..." autocomplete="off">' +
-          '<button class="mini-btn accent asisten-send" type="submit">KIRIM</button>' +
-        '</form>' +
-        '<p class="asisten-preview hidden"></p>' +
-      '</main>' +
-    '</div>';
+        "</div>" +
+      "</header>" +
+      '<div class="fisiko-log" aria-live="polite"></div>' +
+      '<div class="fisiko-chips"></div>' +
+      '<p class="fisiko-preview hidden"></p>' +
+      '<form class="fisiko-form">' +
+        '<button type="button" class="fisiko-pick" title="Kirim gambar soal" aria-label="Kirim gambar soal">📷</button>' +
+        '<input type="file" class="fisiko-file" accept="image/*" hidden>' +
+        '<input class="fisiko-input" placeholder="Tanya Fisiko soal fisika..." autocomplete="off">' +
+        '<button class="fisiko-send" type="submit" aria-label="Kirim">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6l-.01 6.5L15 12 3.39 13.9z"/></svg>' +
+        "</button>" +
+      "</form>" +
+    "</div>";
 
-  const chips = overlay.querySelector(".asisten-chips");
+  const chips = overlay.querySelector(".fisiko-chips");
   for (const saran of SARAN) {
     const tombol = document.createElement("button");
     tombol.type = "button";
-    tombol.className = "asisten-chip";
     tombol.textContent = saran;
     tombol.addEventListener("click", () => {
       els.input.value = saran;
@@ -479,14 +570,27 @@ export function initAsisten() {
 
   els = {
     overlay,
-    log: overlay.querySelector(".asisten-log"),
-    form: overlay.querySelector(".asisten-form"),
-    input: overlay.querySelector(".asisten-input"),
-    send: overlay.querySelector(".asisten-send"),
-    file: overlay.querySelector(".asisten-file"),
-    pick: overlay.querySelector(".asisten-pick"),
-    preview: overlay.querySelector(".asisten-preview"),
+    mascot: overlay.querySelector(".fisiko-id"),
+    bubble: overlay.querySelector(".fisiko-bubble"),
+    log: overlay.querySelector(".fisiko-log"),
+    form: overlay.querySelector(".fisiko-form"),
+    input: overlay.querySelector(".fisiko-input"),
+    send: overlay.querySelector(".fisiko-send"),
+    file: overlay.querySelector(".fisiko-file"),
+    pick: overlay.querySelector(".fisiko-pick"),
+    preview: overlay.querySelector(".fisiko-preview"),
   };
+
+  // Avatar rubah di lobi: tombol besar agar gampang dilihat di dekat karakter game.
+  if (lobbyBtn) {
+    lobbyBtn.innerHTML =
+      '<span class="fisiko-btn-bubble">Tanya aku! 🦊</span>' +
+      '<span class="fisiko-btn-fox">' +
+      FOX_SVG +
+      '<span class="fisiko-btn-dot" aria-hidden="true"></span>' +
+      "</span>" +
+      '<span class="fisiko-btn-label">FISIKO<small>ASISTEN FISIKA</small></span>';
+  }
 
   els.pick.addEventListener("click", () => els.file.click());
   els.file.addEventListener("change", async (event) => {
@@ -497,6 +601,7 @@ export function initAsisten() {
     try {
       gambarSiap = await siapkanGambar(file);
       els.preview.textContent = "📎 Gambar siap dikirim: " + file.name;
+      fisikoSay("idle", "Gambarnya sudah siap, kirim ya!");
     } catch (error) {
       gambarSiap = null;
       els.preview.textContent = "Gagal membaca gambar: " + error.message;
@@ -508,7 +613,8 @@ export function initAsisten() {
     kirimPertanyaan(els.input.value, gambarSiap);
   });
 
-  openBtn.addEventListener("click", open);
+  openBtn?.addEventListener("click", open);
+  lobbyBtn?.addEventListener("click", open);
   overlay.querySelector("[data-close]").addEventListener("click", close);
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) close();
@@ -517,8 +623,6 @@ export function initAsisten() {
     if (event.key === "Escape" && !overlay.classList.contains("hidden")) close();
   });
 
-  tambahPesan(
-    "bot",
-    "Halo! Aku Asisten Fisika. Tanya apa saja dari materi game, atau kirim foto soal lewat tombol 📷.",
-  );
+  const sapaan = tambahPesan("bot", "");
+  tampilkanJawaban(sapaan, "Halo! Aku **Fisiko** 🦊, asisten Fisika kamu. Tanya apa saja dari materi game, atau kirim foto soal lewat tombol 📷.");
 }

@@ -3109,187 +3109,667 @@ body.native #fullscreenBtn {
 }
 
 
-/* Asisten Fisika (chatbot materi) */
-.asisten-shell {
-  grid-template-columns: 250px 1fr;
-  grid-template-rows: 1fr;
-}
+/* ---------------------------------------------------------------- Asisten Fisika (Fisiko) */
+/* Maskot rubah + panel chat tema ungu-gelap/oranye, dipakai sebagai overlay #asistenOverlay
+   dan tombol avatar #fisikoBtn di lobi. */
 
-.asisten-side {
+.fisiko-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 12px;
+  z-index: 4;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 12px 16px;
-  background: rgba(4, 19, 29, 0.45);
-  overflow-y: auto;
-}
-
-.asisten-tips {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.asisten-tip-title {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-
-.asisten-chips {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.asisten-chip {
-  padding: 8px 10px;
-  border: 2px solid #06131b;
-  border-radius: 10px;
-  background: rgba(13, 52, 72, 0.9);
-  color: var(--text);
-  font-size: 12px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px 6px 8px;
+  border: 2px solid rgba(251, 146, 60, 0.6);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(49, 46, 129, 0.92), rgba(124, 45, 18, 0.85));
+  box-shadow: 0 8px 26px rgba(234, 88, 12, 0.35), 0 4px 0 rgba(0, 0, 0, 0.35);
   text-align: left;
-  line-height: 1.25;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
 }
 
-.asisten-chip:hover {
-  border-color: var(--blue);
+.fisiko-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(234, 88, 12, 0.5), 0 4px 0 rgba(0, 0, 0, 0.35);
 }
 
-.asisten-note {
-  margin: auto 0 0;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.35;
+.fisiko-btn:active {
+  transform: translateY(0);
 }
 
-.asisten-main {
+.fisiko-btn-fox {
+  position: relative;
   display: grid;
-  grid-template-rows: 1fr auto auto;
-  min-width: 0;
-  padding: 4px 18px 14px;
-  gap: 8px;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, rgba(251, 146, 60, 0.34), transparent 68%);
 }
 
-.asisten-log {
-  overflow-y: auto;
+.fisiko-btn .fisiko-svg {
+  width: 52px;
+  height: 52px;
+}
+
+.fisiko-btn-dot {
+  position: absolute;
+  right: 4px;
+  bottom: 6px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid #1a1140;
+  border-radius: 50%;
+  background: #4ade80;
+}
+
+.fisiko-btn-label {
+  display: grid;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  line-height: 1.1;
+  color: var(--cream);
+}
+
+.fisiko-btn-label small {
+  font-family: inherit;
+  font-size: 8px;
+  letter-spacing: 0.8px;
+  color: #fed7aa;
+}
+
+.fisiko-btn-bubble {
+  position: absolute;
+  right: 10px;
+  bottom: calc(100% + 10px);
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px 14px 4px 14px;
+  background: rgba(14, 19, 44, 0.92);
+  color: #e8ecf8;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: fisiko-ping-soft 2.6s ease-in-out infinite;
+}
+
+/* Panel chat (di dalam #asistenOverlay) */
+.fisiko-shell {
+  position: relative;
+  width: min(760px, 100%);
+  height: min(88vh, 820px);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-right: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 26px;
+  background:
+    radial-gradient(1100px 600px at 85% -10%, #312e81 0, transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, #7c2d12 0, transparent 55%),
+    linear-gradient(160deg, #0b1020, #1a1140);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  color: #e8ecf8;
+  text-align: left;
+  animation: fisiko-pop 0.32s cubic-bezier(0.2, 1.2, 0.35, 1) both;
 }
 
-.asisten-msg {
-  max-width: 88%;
-  padding: 9px 12px;
-  border-radius: 12px;
+.fisiko-symbols {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fisiko-symbols span {
+  position: absolute;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 40px;
+  color: #fff;
+  opacity: 0.06;
+  animation: fisiko-drift 16s ease-in-out infinite alternate;
+}
+
+.fisiko-head {
+  position: relative;
+  z-index: 1;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.17), rgba(99, 102, 241, 0.15));
+}
+
+.fisiko-id {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fisiko-fox-wrap {
+  position: relative;
+  width: 88px;
+  height: 96px;
+  flex: none;
+}
+
+.fisiko-fox-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 146, 60, 0.5), transparent 70%);
+  filter: blur(10px);
+}
+
+.fisiko-svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 88px;
+  height: 88px;
+  overflow: visible;
+  animation: fisiko-bob 3.2s ease-in-out infinite;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+}
+
+.fisiko-shadow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 46px;
+  height: 7px;
+  margin-left: -23px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  animation: fisiko-shadow 3.2s ease-in-out infinite;
+}
+
+.fisiko-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.fisiko-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #e8ecf8;
+}
+
+.fisiko-live {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
+  animation: fisiko-ping 2s infinite;
+}
+
+.fisiko-role {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fed7aa;
+  background: rgba(251, 146, 60, 0.18);
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.fisiko-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #98a2c3;
+}
+
+.fisiko-bubble {
+  position: relative;
+  display: inline-block;
+  margin-top: 9px;
+  max-width: 100%;
+  padding: 7px 13px;
   font-size: 13px;
-  line-height: 1.5;
-  white-space: pre-wrap;
+  line-height: 1.4;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px 14px 14px 4px;
+}
+
+.fisiko-head .belajar-close {
+  align-self: flex-start;
+  margin-left: auto;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8ecf8;
+  box-shadow: none;
+}
+
+.fisiko-head .belajar-close:hover {
+  border-color: #fb923c;
+}
+
+.fisiko-head .belajar-close:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.fisiko-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fisiko-blink 4.5s infinite;
+}
+
+.fisiko-eyes {
+  transition: transform 0.3s;
+}
+
+.fisiko-mouth {
+  transform-box: fill-box;
+  transform-origin: center top;
+}
+
+.fisiko-id[data-state="thinking"] .fisiko-svg {
+  animation: fisiko-think 1.4s ease-in-out infinite;
+}
+
+.fisiko-id[data-state="thinking"] .fisiko-eyes {
+  transform: translateY(-2px);
+}
+
+.fisiko-id[data-state="talking"] .fisiko-mouth {
+  animation: fisiko-talk 0.22s ease-in-out infinite alternate;
+}
+
+.fisiko-log {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-behavior: smooth;
+}
+
+.fisiko-log::-webkit-scrollbar {
+  width: 8px;
+}
+
+.fisiko-log::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+}
+
+.fisiko-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  animation: fisiko-pop 0.25s ease;
+}
+
+.fisiko-row.me {
+  justify-content: flex-end;
+}
+
+.fisiko-av {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  background: linear-gradient(135deg, #fdba74, #f97316);
+  box-shadow: 0 3px 10px rgba(249, 115, 22, 0.4);
+}
+
+.fisiko-msg {
+  max-width: 80%;
+  padding: 11px 15px;
+  border-radius: 20px;
+  font-size: 14.5px;
+  line-height: 1.6;
   overflow-wrap: anywhere;
 }
 
-.asisten-msg.me {
-  align-self: flex-end;
-  background: rgba(37, 99, 235, 0.85);
-  color: #f8fafc;
+.fisiko-row.bot .fisiko-msg {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom-left-radius: 6px;
 }
 
-.asisten-msg.bot {
-  align-self: flex-start;
-  background: rgba(13, 52, 72, 0.92);
-  color: var(--text);
+.fisiko-row.me .fisiko-msg {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
 }
 
-.asisten-msg img {
-  display: block;
+.fisiko-msg img {
   max-width: 100%;
-  border-radius: 8px;
-  margin-bottom: 6px;
+  border-radius: 12px;
+  display: block;
+  margin-bottom: 8px;
 }
 
-.asisten-msg .asisten-text.err {
-  color: #fca5a5;
-}
-
-.asisten-debug {
-  align-self: flex-start;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.3;
+.fisiko-text {
   white-space: pre-wrap;
 }
 
-.asisten-ulang {
+.fisiko-msg strong {
+  color: #fed7aa;
+}
+
+.fisiko-row.me .fisiko-msg strong {
+  color: #fff;
+}
+
+.fisiko-msg code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+.fisiko-text.err {
+  color: #fca5a5;
+}
+
+.fisiko-dots {
+  display: inline-flex;
+  gap: 5px;
+  padding: 4px 0;
+}
+
+.fisiko-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #98a2c3;
+  animation: fisiko-bounce 1.2s infinite;
+}
+
+.fisiko-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.fisiko-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.fisiko-debug {
   align-self: flex-start;
-  padding: 5px 10px;
-  border: 2px solid #06131b;
+  color: #98a2c3;
+  font-size: 10px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+.fisiko-ulang {
+  align-self: flex-start;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  background: rgba(13, 52, 72, 0.9);
-  color: var(--cream);
-  font-size: 11px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8ecf8;
+  font-size: 12px;
+  cursor: pointer;
 }
 
-.asisten-form {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+.fisiko-ulang:hover {
+  border-color: #fb923c;
+}
+
+.fisiko-chips {
+  position: relative;
+  z-index: 1;
+  display: flex;
   gap: 8px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.fisiko-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.fisiko-chips button {
+  flex: none;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 13px;
+  color: #e8ecf8;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 8px 14px;
+  transition: 0.2s;
+}
+
+.fisiko-chips button:hover {
+  border-color: #fb923c;
+  background: rgba(251, 146, 60, 0.14);
+  transform: translateY(-2px);
+}
+
+.fisiko-preview {
+  display: block;
+  margin: 0 20px 10px;
+  padding: 7px 12px;
+  font-size: 12px;
+  color: #bfdbfe;
+  background: rgba(96, 165, 250, 0.15);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 10px;
+}
+
+.fisiko-preview.hidden {
+  display: none;
+}
+
+.fisiko-form {
+  position: relative;
+  z-index: 1;
+  display: flex;
   align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.22);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.asisten-pick {
-  width: 42px;
-  height: 42px;
-  border: 2px solid #06131b;
-  border-radius: 12px;
-  background: rgba(13, 52, 72, 0.9);
-  color: var(--cream);
-  font-size: 17px;
-  box-shadow: 0 4px 0 #05121a;
-}
-
-.asisten-input {
+.fisiko-input {
+  flex: 1;
   min-width: 0;
-  height: 42px;
-  padding: 0 12px;
-  border: 2px solid var(--panel-line);
-  border-radius: 12px;
-  background: rgba(3, 16, 24, 0.75);
-  color: var(--text);
-  font-size: 14px;
-}
-
-.asisten-input:focus {
+  padding: 13px 18px;
+  font-size: 15px;
+  color: #e8ecf8;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
   outline: none;
-  border-color: var(--blue);
+  transition: 0.2s;
 }
 
-.asisten-preview {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
+.fisiko-input::placeholder {
+  color: #98a2c3;
 }
 
-@media (max-width: 720px) {
-  .asisten-shell {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+.fisiko-input:focus {
+  border-color: #fb923c;
+  box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.18);
+}
+
+.fisiko-pick,
+.fisiko-send {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.fisiko-pick {
+  font-size: 19px;
+  color: #e8ecf8;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fisiko-pick:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.fisiko-send {
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  box-shadow: 0 6px 16px rgba(234, 88, 12, 0.45);
+}
+
+.fisiko-send:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.04);
+}
+
+.fisiko-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.fisiko-send svg {
+  width: 20px;
+  height: 20px;
+  fill: #fff;
+}
+
+@keyframes fisiko-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fisiko-bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+@keyframes fisiko-shadow {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(0.72); opacity: 0.2; }
+}
+
+@keyframes fisiko-think {
+  0%, 100% { transform: translateY(-2px) rotate(-9deg); }
+  50% { transform: translateY(-7px) rotate(-4deg); }
+}
+
+@keyframes fisiko-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+
+@keyframes fisiko-talk {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(2.6); }
+}
+
+@keyframes fisiko-ping {
+  70% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+@keyframes fisiko-ping-soft {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-4px); opacity: 0.85; }
+}
+
+@keyframes fisiko-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+@keyframes fisiko-drift {
+  from { transform: translate(0, 0) rotate(-3deg); }
+  to { transform: translate(24px, -34px) rotate(3deg); }
+}
+
+/* Layar sempit (HP portrait): panggung hero terlalu kecil untuk memuat tombol,
+   jadi avatar rubah ditempel ke sudut kanan-bawah layar agar tidak terpotong
+   oleh overflow panggung dan tetap gampang dilihat. */
+@media (max-width: 700px) {
+  #asistenOverlay {
+    padding: 0;
   }
 
-  .asisten-side {
-    gap: 8px;
-    padding-bottom: 10px;
+  .fisiko-shell {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
   }
 
-  .asisten-chips {
-    flex-direction: row;
-    flex-wrap: wrap;
+  .fisiko-fox-wrap,
+  .fisiko-svg {
+    width: 68px;
+    height: 68px;
   }
 
-  .asisten-note {
+  .fisiko-fox-wrap {
+    height: 76px;
+  }
+
+  .fisiko-sub {
     display: none;
+  }
+
+  .fisiko-msg {
+    max-width: 86%;
+  }
+
+  .fisiko-btn {
+    position: fixed;
+    right: 12px;
+    bottom: 80px; /* di atas bilah tombol MAIN di bagian bawah layar */
+    z-index: 40;
+    gap: 0;
+    padding: 5px;
+    border-radius: 50%;
+  }
+
+  .fisiko-btn-bubble,
+  .fisiko-btn-label {
+    display: none;
+  }
+
+  .fisiko-btn-fox,
+  .fisiko-btn .fisiko-svg {
+    width: 46px;
+    height: 46px;
+  }
+
+  .fisiko-btn-dot {
+    right: 2px;
+    bottom: 3px;
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fisiko-svg,
+  .fisiko-shadow,
+  .fisiko-eye,
+  .fisiko-mouth,
+  .fisiko-live,
+  .fisiko-symbols span,
+  .fisiko-btn-bubble {
+    animation: none !important;
   }
 }

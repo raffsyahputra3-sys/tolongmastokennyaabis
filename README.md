@@ -168,6 +168,11 @@ Asisten memanggil model **Qwen VL (OCR)** lewat gateway Helipod, tetapi:
 - Pertanyaan tak jelas dijawab lokal tanpa API. Mode debug: buka
   `?asistenDebug=1`, atau set `localStorage["fisbot:debug"] = "1"`.
 
+**Cara membuka:** avatar rubah **Fisiko** di lobi (pojok kanan-bawah panggung
+hero, di dekat karakter game) atau tombol **🤖 ASISTEN FISIKA** pada panel
+BELAJAR FISIKA. Maskotnya punya tiga keadaan (diam, berpikir, bicara) dan balon
+bicara, sehingga gampang terlihat tanpa harus membuka menu.
+
 Konfigurasi server (bukan di client):
 
 | Variabel | Fungsi |

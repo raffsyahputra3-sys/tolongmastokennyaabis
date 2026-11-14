@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CHUNKS, DAFTAR_TOPIK, TOTAL_KARAKTER_MATERI, TOTAL_KARAKTER_PENUH } from "../client/asisten-data.js";
-import { jenisPertanyaan, jawabanLokal, pilihChunk, rakitSystemPrompt } from "../client/asisten.js";
+import { formatJawaban, jenisPertanyaan, jawabanLokal, pilihChunk, rakitSystemPrompt, rapikanJawaban } from "../client/asisten.js";
 
 function topikPertama(pertanyaan) {
   const chunks = pilihChunk(pertanyaan);
@@ -106,4 +106,19 @@ test("prompt tanpa chunk tetap menyebut batas topik", () => {
   const prompt = rakitSystemPrompt("T5", [], "Jelaskan teori relativitas");
   assert.ok(prompt.includes("DAFTAR TOPIK MATERI"));
   assert.ok(prompt.includes("tidak ada topik yang cocok"));
+});
+
+test("rapikanJawaban membuang LaTeX tapi menyisakan penanda tebal", () => {
+  const hasil = rapikanJawaban("**Rumus:** \\[ Ek = \\frac{1}{2}mv^2 \\]");
+  assert.ok(!hasil.includes("\\"), "masih ada backslash: " + hasil);
+  assert.ok(!hasil.includes("\\frac"), "\\frac tidak diganti");
+  assert.ok(hasil.includes("**Rumus:**"), "penanda tebal hilang");
+});
+
+test("formatJawaban meng-escape HTML lalu mengaktifkan **tebal** dan `kode`", () => {
+  const hasil = formatJawaban("<b>x</b> **Ek** = `½mv²`");
+  assert.ok(hasil.includes("&lt;b&gt;"), "HTML tidak di-escape");
+  assert.ok(hasil.includes("<strong>Ek</strong>"));
+  assert.ok(hasil.includes("<code>½mv²</code>"));
+  assert.equal(formatJawaban("2*3*4"), "2*3*4");
 });
