@@ -10,6 +10,19 @@ export function normalizeServerUrl(raw) {
   return value.replace(/\/+$/, "");
 }
 
+// Basis HTTP(S) server game untuk panggilan API (mis. Asisten Fisiko).
+// - Halaman dilayani server game sendiri -> "" (alamat relatif sudah benar).
+// - Aplikasi native (Capacitor) dilayani dari perangkat -> butuh alamat absolut,
+//   kalau tidak, fetch("/api/...") akan menyasar HP sendiri.
+export function serverHttpBase() {
+  const native = typeof document !== "undefined" && document.body?.dataset?.native === "1";
+  const dariServer =
+    typeof window !== "undefined" &&
+    (window.location?.protocol === "http:" || window.location?.protocol === "https:");
+  if (!native && dariServer) return "";
+  return defaultServerUrl().replace(/^ws:/, "http:").replace(/^wss:/, "https:");
+}
+
 function defaultServerUrl() {
   const params = new URLSearchParams(window.location.search);
   const fromQuery = params.get("server");

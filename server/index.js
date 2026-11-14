@@ -506,6 +506,17 @@ export function createGameServer(options = {}) {
         return;
       }
       if (url.pathname === "/api/asisten") {
+        // APK native (Capacitor) memanggil endpoint ini dari origin lain
+        // (http://localhost), jadi preflight OPTIONS dan header CORS wajib ada.
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        response.setHeader("Access-Control-Max-Age", "86400");
+        if (request.method === "OPTIONS") {
+          response.writeHead(204);
+          response.end();
+          return;
+        }
         if (request.method !== "POST") {
           response.writeHead(405, { "Content-Type": "application/json; charset=utf-8" });
           response.end(JSON.stringify({ error: "Gunakan POST." }));

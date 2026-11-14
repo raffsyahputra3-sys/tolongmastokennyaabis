@@ -1,16 +1,27 @@
 // Fitur Asisten Fisika (Fisiko): chatbot hemat token (retrieval chunk + template jawaban).
 // PRD: PRD-agent-pembuat-chatbot.md + PRD-efisiensi-jawaban-template.md
 import { CHUNKS, DAFTAR_TOPIK, TOTAL_KARAKTER_MATERI, normalisasi } from "./asisten-data.js";
+import { serverHttpBase } from "./net.js";
 
 const CONFIG = {
   // DEBUG: tampilkan jenis pertanyaan, chunk terpilih, panjang prompt, dan usage token.
   DEBUG: new URLSearchParams(globalThis.location?.search ?? "").has("asistenDebug"),
-  ENDPOINT: "/api/asisten",
   MAX_HISTORY: 6,
   MAX_CHUNK: 3,
   CACHE_PREFIX: "fisbot:",
   DEBUG_KEY: "fisbot:debug",
 };
+
+const JALUR_ASISTEN = "/api/asisten";
+// Server gratis bisa "tidur" saat lama tak dipakai, jadi beri waktu bangun
+// tapi jangan menggantung tanpa batas.
+const BATAS_TUNGGU_MS = 90_000;
+
+// Di APK native halaman dilayani dari perangkat, jadi alamat relatif akan
+// menyasar HP sendiri. serverHttpBase() mengembalikan alamat server game.
+function endpointAsisten() {
+  return serverHttpBase() + JALUR_ASISTEN;
+}
 
 try {
   if (globalThis.localStorage?.getItem(CONFIG.DEBUG_KEY) === "1") CONFIG.DEBUG = true;
@@ -283,15 +294,29 @@ async function siapkanGambar(file) {
 
 async function tanyaServer(messages, jenis) {
   const template = TEMPLATE[jenis] ?? TEMPLATE.T1;
-  const res = await fetch(CONFIG.ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      messages,
-      max_tokens: template.maxTokens,
-      temperature: template.temperature,
-    }),
-  });
+  const pembatal = new AbortController();
+  const jam = setTimeout(() => pembatal.abort(), BATAS_TUNGGU_MS);
+  let res;
+  try {
+    res = await fetch(endpointAsisten(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: pembatal.signal,
+      body: JSON.stringify({
+        messages,
+        max_tokens: template.maxTokens,
+        temperature: template.temperature,
+      }),
+    });
+  } catch {
+    throw new Error(
+      pembatal.signal.aborted
+        ? "server terlalu lama merespons, coba lagi"
+        : "server asisten tidak terjangkau",
+    );
+  } finally {
+    clearTimeout(jam);
+  }
   let data = null;
   try {
     data = await res.json();

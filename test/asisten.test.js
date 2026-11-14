@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CHUNKS, DAFTAR_TOPIK, TOTAL_KARAKTER_MATERI, TOTAL_KARAKTER_PENUH } from "../client/asisten-data.js";
 import { formatJawaban, jenisPertanyaan, jawabanLokal, pilihChunk, rakitSystemPrompt, rapikanJawaban } from "../client/asisten.js";
+import { serverHttpBase } from "../client/net.js";
 
 function topikPertama(pertanyaan) {
   const chunks = pilihChunk(pertanyaan);
@@ -121,4 +122,30 @@ test("formatJawaban meng-escape HTML lalu mengaktifkan **tebal** dan `kode`", ()
   assert.ok(hasil.includes("<strong>Ek</strong>"));
   assert.ok(hasil.includes("<code>½mv²</code>"));
   assert.equal(formatJawaban("2*3*4"), "2*3*4");
+});
+
+test("serverHttpBase: halaman dari server pakai alamat relatif, APK native pakai absolut", () => {
+  const simpan = {
+    window: globalThis.window,
+    document: globalThis.document,
+    localStorage: globalThis.localStorage,
+  };
+  try {
+    globalThis.localStorage = { getItem: () => null };
+    globalThis.window = {
+      location: { search: "", protocol: "https:", host: "gatravolt.onrender.com" },
+    };
+    // Dibuka di browser/PWA dari server game: alamat relatif sudah benar.
+    globalThis.document = { body: { dataset: {} } };
+    assert.equal(serverHttpBase(), "");
+
+    // Dibuka sebagai APK native: halaman dari perangkat, butuh alamat absolut.
+    globalThis.document = { body: { dataset: { native: "1" } } };
+    assert.equal(serverHttpBase(), "https://gatravolt.onrender.com");
+  } finally {
+    for (const [key, value] of Object.entries(simpan)) {
+      if (value === undefined) delete globalThis[key];
+      else globalThis[key] = value;
+    }
+  }
 });
