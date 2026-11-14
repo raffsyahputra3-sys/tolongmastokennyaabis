@@ -3853,3 +3853,121 @@ body.native #fullscreenBtn {
     animation: none !important;
   }
 }
+
+/* ---------------------------------------------------------------- akun pemain (Supabase) */
+
+.v2-topbar .auth-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 2px solid #123c4f;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #0e3546, #08222e);
+  color: var(--cream, #f4f7ea);
+  font: 700 11px/1 "Trebuchet MS", sans-serif;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.v2-topbar .auth-chip svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.v2-topbar .auth-chip:hover {
+  filter: brightness(1.15);
+}
+
+.auth-card {
+  width: min(420px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.auth-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-tabs {
+  margin-bottom: 6px;
+}
+
+.auth-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #cfe3ea;
+}
+
+.auth-check input {
+  margin-top: 2px;
+  flex: none;
+}
+
+.auth-check a,
+.auth-legal a {
+  color: #7fd3ff;
+}
+
+.auth-status {
+  min-height: 18px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: #9fc2ce;
+}
+
+.auth-status[data-tone="bad"] {
+  color: #ff9b9b;
+}
+
+.auth-status[data-tone="good"] {
+  color: #9ef0b6;
+}
+
+.auth-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.auth-note {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #0b2a38;
+  border: 1px solid #123c4f;
+  color: #9fc2ce;
+  font-size: 12.5px;
+}
+
+.auth-legal {
+  margin: 14px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #7f9aa6;
+}
+
+.mini-btn.danger {
+  border-color: #7f2230;
+  background: linear-gradient(180deg, #a33244, #6d1f2c);
+  color: #ffe9ec;
+}
+
+.big-btn.danger {
+  background: linear-gradient(180deg, #a33244, #6d1f2c);
+  color: #ffe9ec;
+}
+

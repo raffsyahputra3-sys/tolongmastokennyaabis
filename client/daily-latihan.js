@@ -83,6 +83,11 @@ function save() {
   } catch {
     // Storage may be unavailable in restricted contexts.
   }
+  try {
+    document.dispatchEvent(new CustomEvent("logicodix:daily-updated"));
+  } catch {
+    // Non-browser context.
+  }
 }
 
 function load() {
@@ -257,4 +262,28 @@ export function initDailyLatihan() {
   load();
   ensureToday();
   render();
+}
+
+/** Salinan state latihan lokal untuk disinkronkan ke akun. */
+export function readDailyState() {
+  load();
+  ensureToday();
+  return { ...state };
+}
+
+/** Terapkan state dari akun bila lebih maju (streak/tanggal selesai terakhir). */
+export function applyRemoteDaily(remote) {
+  if (!remote || typeof remote !== "object") return false;
+  load();
+  const remoteStreak = Number(remote.streak) || 0;
+  const localStreak = Number(state.streak) || 0;
+  const remoteDate = String(remote.lastCompletedDate ?? "");
+  const localDate = String(state.lastCompletedDate ?? "");
+  const lebihMaju = remoteStreak > localStreak || (remoteStreak >= localStreak && remoteDate > localDate);
+  if (!lebihMaju) return false;
+  state = { ...DEFAULT_STATE, ...remote };
+  save();
+  ensureToday();
+  render();
+  return true;
 }

@@ -8,6 +8,12 @@ import { WebSocketServer } from "ws";
 import { HEROES } from "../shared/heroes.js";
 import { SKILL_LEVELS } from "../shared/constants.js";
 import { Room } from "./room.js";
+import {
+  deleteAccount,
+  exportAccount,
+  supabaseConfig,
+  verifyAccessToken,
+} from "./auth.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OPEN = 1;
@@ -66,6 +72,16 @@ function cleanProfile(message) {
     heroId: cleanHero(message.heroId),
     skillLevel: cleanSkill(message.skillLevel),
   };
+}
+
+// Pemain boleh bermain tanpa akun. Bila menyertakan access token Supabase yang
+// valid, identitas akun diikat ke koneksi agar reconnect/progres bisa disinkronkan.
+async function ensureUserId(ctx, message) {
+  if (ctx.userId) return;
+  const token = typeof message?.accessToken === "string" ? message.accessToken : "";
+  if (!token) return;
+  const user = await verifyAccessToken(token);
+  if (user) ctx.userId = user.id;
 }
 
 function isPathInside(root, candidate) {
@@ -301,6 +317,7 @@ export function createGameServer(options = {}) {
     const result = room.addHuman({
       ...profile,
       socket: ctx.ws,
+      userId: ctx.userId,
     });
     if (result.error) {
       rooms.delete(room.code);
@@ -320,7 +337,7 @@ export function createGameServer(options = {}) {
 
   function createPrivateRoom(ctx, profile) {
     const room = createRoom("online");
-    const result = room.addHuman({ ...profile, socket: ctx.ws });
+    const result = room.addHuman({ ...profile, socket: ctx.ws, userId: ctx.userId });
     if (result.error) {
       rooms.delete(room.code);
       sendError(ctx.ws, result.error);
@@ -341,7 +358,7 @@ export function createGameServer(options = {}) {
       sendError(ctx.ws, "Room sudah penuh atau pertandingan sudah berjalan.");
       return null;
     }
-    const result = room.addHuman({ ...profile, socket: ctx.ws });
+    const result = room.addHuman({ ...profile, socket: ctx.ws, userId: ctx.userId });
     if (result.error) {
       sendError(ctx.ws, result.error);
       return null;
@@ -386,7 +403,7 @@ export function createGameServer(options = {}) {
     ctx.queued = false;
 
     const room = createRoom("online");
-    const first = room.addHuman({ ...waiting.profile, socket: waiting.ws });
+    const first = room.addHuman({ ...waiting.profile, socket: waiting.ws, userId: waiting.ctx.userId });
     if (first.error) {
       rooms.delete(room.code);
       sendError(waiting.ws, first.error);
@@ -394,7 +411,7 @@ export function createGameServer(options = {}) {
       ctx.queued = true;
       return;
     }
-    const second = room.addHuman({ ...profile, socket: ctx.ws });
+    const second = room.addHuman({ ...profile, socket: ctx.ws, userId: ctx.userId });
     if (second.error) {
       rooms.delete(room.code);
       sendError(ctx.ws, second.error);
@@ -448,6 +465,8 @@ export function createGameServer(options = {}) {
       pathname === "/manifest.webmanifest" ||
       pathname === "/sw.js" ||
       pathname === "/ui2.css" ||
+      pathname === "/privacy.html" ||
+      pathname === "/terms.html" ||
       pathname.startsWith("/client/") ||
       pathname.startsWith("/shared/") ||
       pathname.startsWith("/assets/");
@@ -525,6 +544,65 @@ export function createGameServer(options = {}) {
         await tanganiAsisten(request, response, log, asistenHits);
         return;
       }
+      if (url.pathname === "/api/config" || url.pathname === "/api/account/delete" || url.pathname === "/api/account/export") {
+        // Endpoint akun juga dipanggil aplikasi native (origin berbeda) -> butuh CORS.
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        response.setHeader("Access-Control-Max-Age", "86400");
+        if (request.method === "OPTIONS") {
+          response.writeHead(204);
+          response.end();
+          return;
+        }
+
+        if (url.pathname === "/api/config") {
+          response.writeHead(200, {
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": "no-store",
+          });
+          response.end(JSON.stringify({ supabase: supabaseConfig() }));
+          return;
+        }
+
+        if (request.method !== "POST") {
+          response.writeHead(405, { "Content-Type": "application/json; charset=utf-8" });
+          response.end(JSON.stringify({ error: "Gunakan POST." }));
+          return;
+        }
+
+        const authorization = String(request.headers.authorization ?? "");
+        const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+        const user = await verifyAccessToken(token);
+        if (!user) {
+          response.writeHead(401, { "Content-Type": "application/json; charset=utf-8" });
+          response.end(JSON.stringify({ error: "unauthorized" }));
+          return;
+        }
+
+        if (url.pathname === "/api/account/export") {
+          const result = await exportAccount(user.id);
+          if (result.error) {
+            response.writeHead(503, { "Content-Type": "application/json; charset=utf-8" });
+            response.end(JSON.stringify({ error: result.error }));
+            return;
+          }
+          response.writeHead(200, {
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": "no-store",
+          });
+          response.end(JSON.stringify(result.data));
+          return;
+        }
+
+        const removed = await deleteAccount(user.id);
+        response.writeHead(removed.ok ? 200 : 503, {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "no-store",
+        });
+        response.end(JSON.stringify(removed.ok ? { ok: true } : { error: removed.error }));
+        return;
+      }
       if (request.method !== "GET" && request.method !== "HEAD") {
         response.writeHead(405);
         response.end("Method not allowed");
@@ -555,6 +633,7 @@ export function createGameServer(options = {}) {
       roomCode: null,
       playerId: null,
       token: null,
+      userId: null,
       queued: false,
       messages: 0,
       windowStart: Date.now(),
@@ -568,7 +647,7 @@ export function createGameServer(options = {}) {
       serverTime: Date.now(),
     });
 
-    ws.on("message", (buffer) => {
+    ws.on("message", async (buffer) => {
       const now = Date.now();
       if (now - ctx.windowStart > 10_000) {
         ctx.windowStart = now;
@@ -600,23 +679,27 @@ export function createGameServer(options = {}) {
 
       if (message.type === "createRoom") {
         if (ctx.roomCode) return sendError(ws, "Kamu sudah berada dalam room.");
+        await ensureUserId(ctx, message);
         createPrivateRoom(ctx, cleanProfile(message));
         return;
       }
 
       if (message.type === "joinRoom") {
         if (ctx.roomCode) return sendError(ws, "Kamu sudah berada dalam room.");
+        await ensureUserId(ctx, message);
         joinPrivateRoom(ctx, cleanProfile(message), message.code);
         return;
       }
 
       if (message.type === "practice") {
         if (ctx.roomCode) return sendError(ws, "Kamu sudah berada dalam room.");
+        await ensureUserId(ctx, message);
         createSoloRoom(ctx, cleanProfile(message), "practice");
         return;
       }
 
       if (message.type === "quickMatch") {
+        await ensureUserId(ctx, message);
         handleQuickMatch(ctx, cleanProfile(message));
         return;
       }
@@ -628,27 +711,46 @@ export function createGameServer(options = {}) {
 
       if (message.type === "resume") {
         if (ctx.roomCode) return sendError(ws, "Koneksi ini sudah terikat ke room.");
+        await ensureUserId(ctx, message);
         const token = String(message.token ?? "");
         const roomCode = String(message.roomCode ?? "").toUpperCase();
         const session = sessions.get(token);
-        if (!session || session.roomCode !== roomCode) {
-          sendError(ws, "Sesi reconnect tidak valid atau sudah kedaluwarsa.");
+        if (session && session.roomCode === roomCode) {
+          const room = rooms.get(session.roomCode);
+          if (!room) {
+            sessions.delete(token);
+            sendError(ws, "Room sudah tidak tersedia.");
+            return;
+          }
+          const result = room.resumePlayer(session.playerId, ws, now);
+          if (result.error) {
+            sendError(ws, result.error);
+            return;
+          }
+          ctx.roomCode = room.code;
+          ctx.playerId = result.player.id;
+          ctx.token = result.player.token;
           return;
         }
-        const room = rooms.get(session.roomCode);
-        if (!room) {
-          sessions.delete(token);
-          sendError(ws, "Room sudah tidak tersedia.");
-          return;
+        // Token sesi hilang/kedaluwarsa, tetapi akun valid: pulihkan slot lewat identitas akun.
+        if (ctx.userId) {
+          for (const room of rooms.values()) {
+            const player = [...room.players.values()].find(
+              (candidate) => candidate.userId === ctx.userId,
+            );
+            if (!player) continue;
+            const result = room.resumePlayer(player.id, ws, now);
+            if (result.error) {
+              sendError(ws, result.error);
+              return;
+            }
+            ctx.roomCode = room.code;
+            ctx.playerId = player.id;
+            ctx.token = player.token;
+            return;
+          }
         }
-        const result = room.resumePlayer(session.playerId, ws, now);
-        if (result.error) {
-          sendError(ws, result.error);
-          return;
-        }
-        ctx.roomCode = room.code;
-        ctx.playerId = result.player.id;
-        ctx.token = result.player.token;
+        sendError(ws, "Sesi reconnect tidak valid atau sudah kedaluwarsa.");
         return;
       }
 

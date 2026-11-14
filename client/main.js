@@ -1,4 +1,6 @@
 import { AudioEngine } from "./audio.js";
+import { AuthClient } from "./auth.js";
+import { initAuthUI } from "./auth-ui.js";
 import { angleToward, collectHitEvents, hpTone, mergeAlert } from "./combat.js";
 import { initDailyLatihan, refreshDailyLatihan } from "./daily-latihan.js";
 import { initLatihan } from "./latihan.js";
@@ -12,7 +14,7 @@ import { ArenaRenderer, drawHeroPortrait } from "./render.js";
 import { ArenaRenderer3D, drawHeroPortrait3D, isWebGLAvailable } from "./render3d.js";
 
 const drawPortrait = isWebGLAvailable() ? drawHeroPortrait3D : drawHeroPortrait;
-import { DIFFICULTY_NAMES, HERO_ORDER, MATCH } from "../shared/constants.js";
+import { DIFFICULTY_NAMES, HERO_ORDER, MATCH, SKILL_LEVELS } from "../shared/constants.js";
 import { getHero } from "../shared/heroes.js";
 
 const $ = (id) => document.getElementById(id);
@@ -270,6 +272,8 @@ const ui = {
 };
 
 let client = null;
+const auth = new AuthClient();
+let authUI = null;
 
 function upper(value) {
   return String(value ?? "").toUpperCase();
@@ -2506,10 +2510,28 @@ function init() {
   els.bootStatus.textContent = "Menghubungkan ke server...";
 
   if (location.search.includes("debug")) window.__logicodix = { handleMessage, ui, showScreen, input, renderer };
-  client = new GameClient({ onStatus: handleStatus, onMessage: handleMessage });
+  client = new GameClient({
+    onStatus: handleStatus,
+    onMessage: handleMessage,
+    getAccessToken: () => auth.currentToken(),
+  });
   ui.session = client.session;
   els.serverInput.value = client.url;
   client.connect();
+
+  // Akun pemain (opsional). Bila server belum punya Supabase, mode tamu tetap jalan.
+  authUI = initAuthUI({ auth, toast, getSkill: () => SKILL_LEVELS[ui.skill] ?? 2 });
+  auth
+    .loadConfig()
+    .then(() => auth.restore())
+    .then(async () => {
+      authUI?.render();
+      if (auth.isSignedIn()) {
+        await authUI?.pullProfile();
+        await authUI?.syncDaily();
+      }
+    })
+    .catch(() => authUI?.render());
   if (ui.native && !localStorage.getItem("logicodix.server")) {
     window.setTimeout(() => {
       toast("Isi alamat server online (https://... atau wss://...) di pengaturan.", "");

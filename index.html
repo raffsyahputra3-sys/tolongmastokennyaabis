@@ -50,6 +50,10 @@
               <path class="sound-wave" d="M17 8c1.2 1.1 2 2.4 2 4s-.8 2.9-2 4" />
             </svg>
           </button>
+          <button id="authBtn" class="auth-chip" type="button" title="Akun pemain">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>
+            <span id="authLabel">MASUK</span>
+          </button>
           <button id="settingsBtn" class="icon-btn" type="button" title="Pengaturan" aria-label="Pengaturan">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" />
@@ -415,6 +419,66 @@
     <div id="latihanOverlay" class="full-overlay hidden" role="dialog" aria-modal="true" aria-label="Latihan fisika"></div>
 
     <div id="asistenOverlay" class="full-overlay hidden" role="dialog" aria-modal="true" aria-label="Asisten fisika"></div>
+
+    <!-- Akun pemain (Supabase). Etika: data minimal, consent, hak hapus & ekspor. -->
+    <div id="authOverlay" class="full-overlay hidden" role="dialog" aria-modal="true" aria-label="Akun pemain">
+      <div class="dialog auth-card">
+        <div class="room-header">
+          <div>
+            <span class="eyebrow">AKUN</span>
+            <h2 id="authTitle">MASUK ATAU DAFTAR</h2>
+          </div>
+          <button id="closeAuthBtn" class="icon-btn small" type="button" aria-label="Tutup">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+
+        <p id="authDisabled" class="auth-note hidden">Akun belum diaktifkan di server ini. Kamu tetap bisa bermain sebagai tamu.</p>
+
+        <div id="authGuest" class="auth-body">
+          <div id="authTabs" class="seg auth-tabs" role="tablist">
+            <button id="authTabLogin" class="active" type="button" role="tab">MASUK</button>
+            <button id="authTabSignup" type="button" role="tab">DAFTAR</button>
+          </div>
+          <label class="field-label" for="authEmail">Email</label>
+          <input id="authEmail" class="text-input" type="email" autocomplete="email" placeholder="nama@email.com" />
+          <label class="field-label" for="authPassword">Kata sandi</label>
+          <input id="authPassword" class="text-input" type="password" autocomplete="current-password" placeholder="Minimal 8 karakter" />
+          <div id="authSignupFields" class="hidden">
+            <label class="field-label" for="authName">Nama tampilan</label>
+            <input id="authName" class="text-input" maxlength="24" autocomplete="nickname" placeholder="Nama di arena" />
+            <label class="auth-check"><input id="authConsent" type="checkbox" /><span>Saya setuju data saya diproses sesuai <a href="/privacy.html" target="_blank" rel="noopener">Kebijakan Privasi</a>.</span></label>
+            <label class="auth-check"><input id="authAge" type="checkbox" /><span>Saya berusia 13 tahun atau lebih, atau mendapat izin orang tua/wali.</span></label>
+          </div>
+          <p id="authStatus" class="auth-status" aria-live="polite"></p>
+          <div class="auth-actions">
+            <button id="authForgot" class="mini-btn" type="button">LUPA SANDI</button>
+            <button id="authSubmit" class="big-btn blue compact" type="button">MASUK</button>
+          </div>
+          <p class="auth-legal">Boleh main tanpa akun. Akun hanya menyimpan nama, email, dan progres belajar. <a href="/terms.html" target="_blank" rel="noopener">Syarat Penggunaan</a>.</p>
+        </div>
+
+        <div id="authAccount" class="auth-body hidden">
+          <p class="auth-status">Masuk sebagai <strong id="authUserEmail">-</strong></p>
+          <label class="field-label" for="authDisplayName">Nama tampilan</label>
+          <input id="authDisplayName" class="text-input" maxlength="24" autocomplete="nickname" />
+          <div class="auth-actions">
+            <button id="authSaveProfile" class="mini-btn" type="button">SIMPAN NAMA</button>
+          </div>
+          <div class="settings-group">
+            <span class="settings-title">DATA SAYA</span>
+            <div class="settings-row"><span>Unduh data saya (JSON)</span><button id="authExport" class="mini-btn" type="button">EKSPOR</button></div>
+            <div class="settings-row"><span>Hapus akun permanen</span><button id="authDelete" class="mini-btn danger" type="button">HAPUS</button></div>
+          </div>
+          <div id="authDeleteBox" class="hidden">
+            <p class="auth-note">Ketik <strong>HAPUS AKUN</strong> untuk mengonfirmasi. Tindakan ini permanen dan tidak dapat dibatalkan.</p>
+            <input id="authDeleteConfirm" class="text-input" placeholder="HAPUS AKUN" autocomplete="off" spellcheck="false" />
+            <div class="auth-actions"><button id="authDeleteConfirmBtn" class="big-btn danger compact" type="button">HAPUS PERMANEN</button></div>
+          </div>
+          <div class="auth-actions"><button id="authLogout" class="mini-btn" type="button">KELUAR</button></div>
+        </div>
+      </div>
+    </div>
 
     <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Pengaturan">
       <div class="dialog settings-dialog">

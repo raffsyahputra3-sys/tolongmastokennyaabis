@@ -41,11 +41,15 @@ function defaultServerUrl() {
   return "ws://127.0.0.1:8787";
 }
 
+// Pesan yang boleh membawa access token akun (Supabase) agar identitas terikat.
+const TOKEN_TYPES = new Set(["createRoom", "joinRoom", "practice", "quickMatch", "resume"]);
+
 export class GameClient {
-  constructor({ onStatus, onMessage }) {
+  constructor({ onStatus, onMessage, getAccessToken = null }) {
     this.url = defaultServerUrl();
     this.onStatus = onStatus;
     this.onMessage = onMessage;
+    this.getAccessToken = getAccessToken;
     this.ws = null;
     this.session = this.readSession();
     this.reconnectTimer = null;
@@ -210,8 +214,17 @@ export class GameClient {
 
   send(payload) {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return false;
-    this.ws.send(JSON.stringify(payload));
+    this.ws.send(JSON.stringify(this.withToken(payload)));
     return true;
+  }
+
+  /** Bubuhkan access token akun (bila ada) ke pesan yang memulai/melanjutkan sesi. */
+  withToken(payload) {
+    if (TOKEN_TYPES.has(payload.type) && !payload.accessToken && this.getAccessToken) {
+      const token = this.getAccessToken();
+      if (token) return { ...payload, accessToken: token };
+    }
+    return payload;
   }
 
   sendInput(mask, aimX, aimY, now = performance.now()) {

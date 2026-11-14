@@ -10,7 +10,7 @@ const out = path.join(root, "www");
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
 
-for (const entry of ["index.html", "styles.css", "ui2.css", "manifest.webmanifest"]) {
+for (const entry of ["index.html", "styles.css", "ui2.css", "privacy.html", "terms.html", "manifest.webmanifest"]) {
   await cp(path.join(root, entry), path.join(out, entry));
 }
 for (const directory of ["client", "shared", "assets"]) {

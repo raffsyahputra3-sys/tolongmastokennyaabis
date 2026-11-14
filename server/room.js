@@ -139,7 +139,7 @@ export class Room {
     });
   }
 
-  addHuman({ name, heroId, skillLevel, socket, token = null }) {
+  addHuman({ name, heroId, skillLevel, socket, token = null, userId = null }) {
     if (this.status !== "lobby" || this.full) {
       return { error: "Room sudah penuh atau pertandingan sedang berjalan." };
     }
@@ -153,6 +153,7 @@ export class Room {
       seat: seat.seat,
       socket,
       token,
+      userId,
       bot: false,
     });
     this.players.set(player.id, player);
@@ -217,13 +218,14 @@ export class Room {
   }
 
 
-  createPlayer({ name, heroId, skillLevel, slot, seat = 0, socket, token, bot, ready = false }) {
+  createPlayer({ name, heroId, skillLevel, slot, seat = 0, socket, token, bot, ready = false, userId = null }) {
     const spawn = SPAWNS[slot][seat];
     return {
       id: randomUUID(),
       seat,
       index: slot * TEAM_SIZE + seat,
       token: token ?? randomBytes(24).toString("base64url"),
+      userId,
       name,
       heroId,
       skillLevel,
