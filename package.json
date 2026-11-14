@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "MOBA fisika real-time dengan kuis soal dan native desktop client.",
+  "description": "GatraVolt — game pembelajaran fisika berbasis MOBA, real-time, dengan kuis soal dan client desktop native.",
   "main": "electron/main.js",
   "scripts": {
     "start": "node scripts/start.mjs",

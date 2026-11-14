@@ -1,4 +1,4 @@
-# PRD — Logicodix: Momentum Arena
+# PRD — GatraVolt: Game Pembelajaran Fisika Berbasis MOBA
 
 **Versi:** 2.0 (desain game)  
 **Tanggal:** 25 Oktober 2026 (diperbarui 14 November 2026)  

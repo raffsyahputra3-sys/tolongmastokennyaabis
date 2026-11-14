@@ -1,8 +1,8 @@
-﻿# Logicodix: Momentum Arena
+﻿# GatraVolt — Game Pembelajaran Fisika Berbasis MOBA
 
 - **Tim:** *tolong mas tokennya abis* — Gestia Deviana, Rafi Praja Syahputra, Muhammad Hadist Rifannan
 - **Kategori:** Web (PWA) + Mobile (APK Android)
-- **Nama aplikasi:** Logicodix: Momentum Arena
+- **Nama aplikasi:** GatraVolt — Game Pembelajaran Fisika Berbasis MOBA
 - **Aplikasi online:** <https://hackathon-tong-sampah.onrender.com>
 
 ## Ringkasan

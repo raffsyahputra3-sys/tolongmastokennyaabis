@@ -34,7 +34,7 @@ function createWindow() {
     minWidth: PHONE ? 320 : 980,
     minHeight: PHONE ? 320 : 640,
     backgroundColor: "#04131d",
-    title: PHONE ? "Logicodix: tampilan HP (F2 putar, F3 ganti ukuran)" : "Logicodix: Momentum Arena",
+    title: PHONE ? "GatraVolt: tampilan HP (F2 putar, F3 ganti ukuran)" : "GatraVolt — Game Pembelajaran Fisika Berbasis MOBA",
     autoHideMenuBar: true,
     show: false,
     webPreferences: {
