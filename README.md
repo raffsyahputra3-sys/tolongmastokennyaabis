@@ -214,7 +214,11 @@ Prinsip etis yang dipegang:
    ini membuat tabel `profiles` & `daily_progress`, aturan RLS, trigger profil
    otomatis, dan fungsi `delete_my_account()`.
 3. Salin **Project URL** dan **anon key** dari **Settings → API**.
-4. Isi sebagai environment variable server game:
+4. Buka **Authentication → URL Configuration**, isi **Site URL** dengan alamat
+   game (mis. `https://hackathon-tong-sampah.onrender.com`) dan tambahkan alamat
+   yang sama ke **Redirect URLs**. Tanpa ini, tautan verifikasi email akan
+   mengarah ke `http://localhost:3000` dan tidak bisa dibuka.
+5. Isi sebagai environment variable server game:
 
 | Variabel | Wajib | Keterangan |
 | --- | --- | --- |
@@ -226,6 +230,11 @@ Prinsip etis yang dipegang:
 Setelah dua variabel wajib terisi dan server dijalankan ulang, tombol MASUK
 aktif. Tanpa keduanya, dialog hanya menampilkan catatan "belum diaktifkan" dan
 semua pemain bermain sebagai tamu.
+
+Bila **confirm email** aktif, tautan verifikasi membawa pengguna kembali ke halaman
+game dan langsung masuk ke akunnya. Kalau ingin pendaftaran tanpa verifikasi
+(email lebih cepat untuk lomba), matikan **Confirm email** di
+**Authentication → Sign In / Providers → Email**.
 
 ## Menghubungkan server internet
 

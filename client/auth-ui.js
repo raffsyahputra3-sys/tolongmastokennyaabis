@@ -32,6 +32,8 @@ export function initAuthUI({ auth, toast = () => {}, getSkill = () => 2 }) {
     userEmail: el("authUserEmail"),
     displayName: el("authDisplayName"),
     saveProfile: el("authSaveProfile"),
+    newPassword: el("authNewPassword"),
+    changePassword: el("authChangePassword"),
     exportBtn: el("authExport"),
     del: el("authDelete"),
     delRow: el("authDeleteRow"),
@@ -53,7 +55,7 @@ export function initAuthUI({ auth, toast = () => {}, getSkill = () => 2 }) {
 
   function setBusy(value) {
     busy = value;
-    for (const button of [els.submit, els.forgot, els.delConfirmBtn, els.exportBtn, els.logout, els.saveProfile]) {
+    for (const button of [els.submit, els.forgot, els.delConfirmBtn, els.exportBtn, els.logout, els.saveProfile, els.changePassword]) {
       if (button) button.disabled = value;
     }
   }
@@ -196,6 +198,25 @@ export function initAuthUI({ auth, toast = () => {}, getSkill = () => 2 }) {
       .catch(() => setStatus("Gagal menyimpan nama.", "bad"));
   }
 
+  /** Ganti kata sandi (juga dipakai setelah tautan pemulihan email). */
+  async function changePassword() {
+    if (busy || !auth.isSignedIn()) return;
+    const password = els.newPassword?.value ?? "";
+    if (password.length < 8) return setStatus("Kata sandi baru minimal 8 karakter.");
+    setBusy(true);
+    setStatus("Menyimpan kata sandi...");
+    try {
+      await auth.changePassword(password);
+      if (els.newPassword) els.newPassword.value = "";
+      setStatus("Kata sandi diperbarui.", "good");
+      toast("Kata sandi diperbarui.", "good");
+    } catch (error) {
+      setStatus(error instanceof AuthError ? error.message : "Gagal mengubah kata sandi.", "bad");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function exportData() {
     if (busy || !auth.isSignedIn()) return;
     setBusy(true);
@@ -266,6 +287,7 @@ export function initAuthUI({ auth, toast = () => {}, getSkill = () => 2 }) {
   els.submit?.addEventListener("click", submit);
   els.forgot?.addEventListener("click", forgot);
   els.saveProfile?.addEventListener("click", saveProfile);
+  els.changePassword?.addEventListener("click", changePassword);
   els.exportBtn?.addEventListener("click", exportData);
   els.del?.addEventListener("click", toggleDelete);
   els.delConfirmBtn?.addEventListener("click", confirmDelete);

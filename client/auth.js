@@ -16,7 +16,8 @@ const PESAN_UMUM = {
   offline: "Server akun belum aktif.",
   unauthorized: "Sesi kedaluwarsa. Silakan masuk lagi.",
   "delete-failed": "Gagal menghapus akun. Coba lagi.",
-  "confirm-email": "Cek email untuk memverifikasi akun, lalu masuk.",
+  'confirm-email':
+    'Akun dibuat. Buka email untuk memverifikasi, lalu MASUK. Tautan mengarah kembali ke halaman game ini.',
 };
 
 export class AuthError extends Error {
@@ -109,6 +110,23 @@ export class AuthClient {
     return { apikey: this.config.anonKey, "Content-Type": "application/json", ...extra };
   }
 
+  /**
+   * Alamat tujuan setelah pengguna mengeklik tautan email. Bila tidak dikirim,
+   * Supabase memakai Site URL proyek (bawaan http://localhost:3000) sehingga
+   * tautan verifikasi salah arah. Aplikasi native tidak punya origin web.
+   */
+  #redirectTo() {
+    if (typeof window === "undefined" || !window.location) return null;
+    const { protocol, host, pathname } = window.location;
+    if (protocol !== "http:" && protocol !== "https:") return null;
+    return `${protocol}//${host}${pathname}`;
+  }
+
+  #redirectQuery() {
+    const target = this.#redirectTo();
+    return target ? `?redirect_to=${encodeURIComponent(target)}` : "";
+  }
+
   async #authFetch(path, options = {}) {
     try {
       return await fetch(`${this.config.url}/auth/v1${path}`, options);
@@ -151,6 +169,62 @@ export class AuthClient {
       this.clearSession();
     }
     return this.isSignedIn();
+  }
+
+  /**
+   * Baca sesi dari tautan email (verifikasi pendaftaran atau pemulihan sandi).
+   * Supabase mengembalikan token pada fragmen URL (#access_token=...). Setelah
+   * dibaca, URL dibersihkan supaya token tidak tertinggal di riwayat peramban.
+   * Mengembalikan { ok } / { error }, atau null bila tidak ada tautan.
+   */
+  async handleRedirect() {
+    if (typeof window === "undefined" || !window.location) return null;
+    const hash = String(window.location.hash ?? "").replace(/^#/, "");
+    const search = String(window.location.search ?? "").replace(/^\?/, "");
+    const adaToken = /(^|&)(access_token|error|error_description)=/.test(hash || search);
+    if (!adaToken) return null;
+    const params = new URLSearchParams(hash || search);
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+    const error = params.get("error_description") || params.get("error");
+    if (!accessToken || !refreshToken) {
+      this.#cleanRedirectUrl();
+      return error ? { error } : null;
+    }
+    const expiresIn = Number(params.get("expires_in")) || 3600;
+    this.session = {
+      accessToken,
+      refreshToken,
+      expiresAt: Math.floor(Date.now() / 1000) + expiresIn,
+      user: null,
+      displayName: null,
+    };
+    writeJson(SESSION_KEY, this.session);
+    this.#cleanRedirectUrl();
+    if (this.config) {
+      await this.#syncDisplayName();
+      try {
+        const profile = await this.loadProfile();
+        if (profile?.display_name) this.session.displayName = profile.display_name;
+      } catch {
+        // Profil opsional; kegagalan tidak menghalangi.
+      }
+      if (!this.displayName && this.session.user?.email) {
+        this.session.displayName = String(this.session.user.email).split("@")[0];
+      }
+      writeJson(SESSION_KEY, this.session);
+    }
+    this.onChange();
+    return { ok: true, email: this.session.user?.email ?? null, type: params.get("type") };
+  }
+
+  #cleanRedirectUrl() {
+    if (typeof window === "undefined" || !window.history?.replaceState) return;
+    try {
+      window.history.replaceState(null, "", window.location.pathname);
+    } catch {
+      // Sebagian konteks tidak mengizinkan perubahan riwayat.
+    }
   }
 
   async refresh() {
@@ -206,7 +280,7 @@ export class AuthClient {
    */
   async signUp(email, password, displayName) {
     if (!this.config) throw new AuthError("offline");
-    const response = await this.#authFetch("/signup", {
+    const response = await this.#authFetch(`/signup${this.#redirectQuery()}`, {
       method: "POST",
       headers: this.#headers(),
       body: JSON.stringify({ email, password, data: { display_name: displayName } }),
@@ -244,12 +318,25 @@ export class AuthClient {
 
   async resetPassword(email) {
     if (!this.config) throw new AuthError("offline");
-    const response = await this.#authFetch("/recover", {
+    const response = await this.#authFetch(`/recover${this.#redirectQuery()}`, {
       method: "POST",
       headers: this.#headers(),
       body: JSON.stringify({ email }),
     });
     if (!response.ok && response.status !== 422) throw new AuthError(await this.#errorCode(response));
+    return true;
+  }
+
+  /** Ganti kata sandi pengguna yang sedang masuk (dipakai juga setelah pemulihan). */
+  async changePassword(password) {
+    if (!this.config) throw new AuthError("offline");
+    const token = await this.#token();
+    const response = await this.#authFetch("/user", {
+      method: "PUT",
+      headers: this.#headers({ Authorization: `Bearer ${token}` }),
+      body: JSON.stringify({ password }),
+    });
+    if (!response.ok) throw new AuthError(await this.#errorCode(response));
     return true;
   }
 

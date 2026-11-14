@@ -2523,7 +2523,18 @@ function init() {
   authUI = initAuthUI({ auth, toast, getSkill: () => SKILL_LEVELS[ui.skill] ?? 2 });
   auth
     .loadConfig()
-    .then(() => auth.restore())
+    .then(() => auth.handleRedirect())
+    .then((hasil) => {
+      if (hasil?.ok) {
+        toast(
+          hasil.type === "recovery" ? "Tautan pemulihan berhasil. Ubah kata sandimu." : "Email terverifikasi. Kamu sudah masuk.",
+          "good",
+        );
+      } else if (hasil?.error) {
+        toast("Tautan tidak valid atau sudah kedaluwarsa.", "bad");
+      }
+      return auth.restore();
+    })
     .then(async () => {
       authUI?.render();
       if (auth.isSignedIn()) {

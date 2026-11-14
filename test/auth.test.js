@@ -84,3 +84,52 @@ test("AuthError memakai pesan umum (tidak membocorkan akun/email)", () => {
   assert.equal(new AuthError("email-exists").message, "Pendaftaran tidak dapat diproses dengan data ini.");
   assert.equal(new AuthError("tidak-dikenal").message, "Email atau kata sandi tidak benar.");
 });
+
+// ---- tautan email (verifikasi / pemulihan sandi) ----
+
+function pasangJendela({ hash = "", search = "" } = {}) {
+  const store = new Map();
+  const state = { cleaned: null };
+  globalThis.localStorage = {
+    getItem: (key) => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => store.set(key, value),
+    removeItem: (key) => store.delete(key),
+  };
+  globalThis.window = {
+    location: { protocol: "https:", host: "contoh.com", pathname: "/", hash, search },
+    history: { replaceState: (_state, _title, url) => { state.cleaned = url; } },
+  };
+  return { store, state };
+}
+
+test("tautan email diubah menjadi sesi lalu URL dibersihkan", async () => {
+  const { AuthClient } = await import("../client/auth.js");
+  const { store, state } = pasangJendela({
+    hash: "#access_token=tok-abc&refresh_token=ref-xyz&expires_in=3600&type=signup",
+  });
+  const client = new AuthClient();
+  const hasil = await client.handleRedirect();
+  assert.equal(hasil.ok, true);
+  assert.equal(hasil.type, "signup");
+  assert.equal(client.currentToken(), "tok-abc");
+  assert.equal(state.cleaned, "/", "token tidak boleh tertinggal di riwayat peramban");
+  assert.equal(JSON.parse(store.get("logicodix.auth")).refreshToken, "ref-xyz");
+  delete globalThis.window;
+  delete globalThis.localStorage;
+});
+
+test("tanpa tautan -> null; tautan rusak -> error yang jelas", async () => {
+  const { AuthClient } = await import("../client/auth.js");
+  pasangJendela();
+  const client = new AuthClient();
+  assert.equal(await client.handleRedirect(), null);
+
+  globalThis.window.location.search = "?error=access_denied&error_description=kedaluwarsa";
+  assert.deepEqual(await client.handleRedirect(), { error: "kedaluwarsa" });
+
+  globalThis.window.location.search = "";
+  globalThis.window.location.hash = "#access_token=tok-saja";
+  assert.equal(await client.handleRedirect(), null);
+  delete globalThis.window;
+  delete globalThis.localStorage;
+});
