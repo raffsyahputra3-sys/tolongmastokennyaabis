@@ -63,12 +63,12 @@
         <!-- 1. LOBI: pusat komando -->
         <section id="homeScreen" class="screen v2-screen v2-home active" aria-label="Lobi">
           <aside class="v2-rail-left">
-            <div class="v2-card">
-              <span class="eyebrow">TINGKAT FISIKA</span>
-              <div id="skillPicker" class="segmented v2-skill" role="group" aria-label="Tingkat fisika">
-                <button type="button" data-skill="pemula">Pemula</button>
-                <button type="button" data-skill="menengah" class="active">Menengah</button>
-                <button type="button" data-skill="mahir">Mahir</button>
+            <div class="v2-card v2-learn">
+              <span class="eyebrow">BELAJAR FISIKA</span>
+              <div class="learn-actions">
+                <button id="materiBtn" class="mini-btn" type="button">MATERI</button>
+                <button id="latihanBtn" class="mini-btn accent" type="button">LATIHAN</button>
+                <button id="asistenBtn" class="mini-btn wide" type="button">🤖 ASISTEN FISIKA</button>
               </div>
             </div>
             <div id="roomPanel" class="v2-card v2-room-panel hidden">
@@ -84,14 +84,6 @@
                   spellcheck="false"
                 />
                 <button id="joinRoomBtn" class="mini-btn accent" type="button">GABUNG</button>
-              </div>
-            </div>
-            <div class="v2-card v2-learn">
-              <span class="eyebrow">BELAJAR FISIKA</span>
-              <div class="learn-actions">
-                <button id="materiBtn" class="mini-btn" type="button">MATERI</button>
-                <button id="latihanBtn" class="mini-btn accent" type="button">LATIHAN</button>
-                <button id="asistenBtn" class="mini-btn wide" type="button">🤖 ASISTEN FISIKA</button>
               </div>
             </div>
             <p id="modeHint" class="v2-hint">Latihan 3v3 melawan bot. Langsung main, tanpa antre.</p>
@@ -439,6 +431,17 @@
         <div class="settings-row">
           <span>Bidik otomatis (sentuh)</span>
           <button id="autoAimToggle" class="toggle-btn active" type="button">AKTIF</button>
+        </div>
+        <div class="settings-group">
+          <span class="settings-title">TINGKAT FISIKA</span>
+          <div class="settings-row">
+            <span>Tingkat soal</span>
+            <div id="skillPicker" class="seg" role="group" aria-label="Tingkat fisika">
+              <button type="button" data-skill="pemula">PEMULA</button>
+              <button type="button" data-skill="menengah" class="active">MENENGAH</button>
+              <button type="button" data-skill="mahir">MAHIR</button>
+            </div>
+          </div>
         </div>
         <div class="settings-group">
           <span class="settings-title">EFEK LAYAR</span>

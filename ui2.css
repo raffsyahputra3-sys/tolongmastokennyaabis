@@ -261,16 +261,6 @@ body[data-screen="game"] .v2-topbar {
   overflow: auto;
 }
 
-.v2-skill {
-  margin-top: 6px;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.v2-skill button {
-  min-height: 40px;
-}
-
 .v2-room-panel {
   display: grid;
   gap: 8px;
@@ -1540,13 +1530,6 @@ body.touch .toast-stack {
 
 .v2-hero-meta {
   z-index: 3;
-}
-
-.v2-skill.segmented,
-.segmented.v2-skill {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 4px;
 }
 
 .v2-rail-left,
