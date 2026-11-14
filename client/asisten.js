@@ -337,6 +337,15 @@ let chunkTerakhir = null;
 let gambarSiap = null;
 let sibuk = false;
 let timerIdle = null;
+// Diisi initAsisten(): menyelaraskan tinggi panel dengan area yang terlihat.
+let syncTinggi = () => {};
+
+// Gulirkan daftar pesan ke pesan terakhir (dipakai saat kirim/terima dan saat
+// keyboard HP muncul, supaya jawaban tidak tersembunyi di balik keyboard).
+function turunkanKeBawah() {
+  if (!els?.log) return;
+  els.log.scrollTop = els.log.scrollHeight;
+}
 
 function fisikoSay(state, teks, ms) {
   if (!els) return;
@@ -376,7 +385,7 @@ function tambahPesan(role, teks, gambar) {
 
   // Tipe balasan: teks biasa (aman) atau HTML yang sudah diformat.
   body.textContent = teks;
-  els.log.scrollTop = els.log.scrollHeight;
+  turunkanKeBawah();
   return body;
 }
 
@@ -392,7 +401,7 @@ function tambahCatatanDebug(teks) {
   note.className = "fisiko-debug";
   note.textContent = teks;
   els.log.appendChild(note);
-  els.log.scrollTop = els.log.scrollHeight;
+  turunkanKeBawah();
 }
 
 function tambahJawabUlang(teksPertanyaan) {
@@ -406,7 +415,7 @@ function tambahJawabUlang(teksPertanyaan) {
     kirimPertanyaan(teksPertanyaan, null, { lewatiCache: true, ulang: true });
   });
   els.log.appendChild(tombol);
-  els.log.scrollTop = els.log.scrollHeight;
+  turunkanKeBawah();
 }
 
 function tampilkanJawaban(elemen, teks) {
@@ -521,16 +530,17 @@ async function kirimPertanyaan(teks, gambar, opsi = {}) {
   } finally {
     sibuk = false;
     els.send.disabled = false;
-    els.log.scrollTop = els.log.scrollHeight;
-    els.input.focus?.();
+    turunkanKeBawah();
+    els.input.focus?.({ preventScroll: true });
   }
 }
 
 function open() {
   if (!els) return;
   els.overlay.classList.remove("hidden");
-  els.input.focus?.();
-  els.log.scrollTop = els.log.scrollHeight;
+  syncTinggi();
+  els.input.focus?.({ preventScroll: true });
+  turunkanKeBawah();
   fisikoSay("idle", "Mau tanya apa hari ini?");
 }
 
@@ -605,6 +615,20 @@ export function initAsisten() {
     pick: overlay.querySelector(".fisiko-pick"),
     preview: overlay.querySelector(".fisiko-preview"),
   };
+
+  // Keyboard HP tidak mengecilkan satuan 100vh, jadi tinggi panel diambil dari
+  // window.visualViewport: panel menyusut mengikuti keyboard dan pesan terakhir
+  // tetap terlihat. Nilainya dipakai lewat variabel CSS di ui2.css.
+  syncTinggi = () => {
+    const vv = window.visualViewport;
+    overlay.style.setProperty("--fisiko-h", Math.round(vv ? vv.height : window.innerHeight) + "px");
+    overlay.style.setProperty("--fisiko-top", Math.round(vv ? vv.offsetTop : 0) + "px");
+    if (!overlay.classList.contains("hidden")) turunkanKeBawah();
+  };
+  syncTinggi();
+  window.visualViewport?.addEventListener("resize", syncTinggi);
+  window.visualViewport?.addEventListener("scroll", syncTinggi);
+  window.addEventListener("orientationchange", () => setTimeout(syncTinggi, 250));
 
   // Avatar rubah di lobi: tombol besar agar gampang dilihat di dekat karakter game.
   if (lobbyBtn) {

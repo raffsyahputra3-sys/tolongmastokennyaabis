@@ -3181,10 +3181,21 @@ body.native #fullscreenBtn {
 }
 
 /* Panel chat (di dalam #asistenOverlay) */
+/* Tinggi panel mengikuti area yang benar-benar terlihat. Nilai variabel dikirim
+   client/asisten.js dari window.visualViewport, jadi saat keyboard HP muncul
+   panel ikut menyusut — jawaban tidak tertutup keyboard. */
+#asistenOverlay {
+  top: var(--fisiko-top, 0px);
+  bottom: auto;
+  height: var(--fisiko-h, 100dvh);
+  overflow: hidden;
+}
+
 .fisiko-shell {
   position: relative;
   width: min(760px, 100%);
-  height: min(88vh, 820px);
+  height: min(88%, 820px);
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3371,7 +3382,10 @@ body.native #fullscreenBtn {
   position: relative;
   z-index: 1;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -3562,7 +3576,7 @@ body.native #fullscreenBtn {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 16px;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
   background: rgba(0, 0, 0, 0.22);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -3691,29 +3705,98 @@ body.native #fullscreenBtn {
     padding: 0;
   }
 
+  /* Di HP panel mengisi seluruh area yang terlihat, dan header dipadatkan
+     supaya ruang jawaban lebih lega serta kolom ketik selalu duduk di atas
+     keyboard. */
   .fisiko-shell {
     width: 100%;
     height: 100%;
+    max-height: 100%;
     border: 0;
     border-radius: 0;
   }
 
+  .fisiko-head {
+    padding: 10px 14px;
+  }
+
+  .fisiko-id {
+    align-items: center;
+    gap: 11px;
+  }
+
   .fisiko-fox-wrap,
   .fisiko-svg {
-    width: 68px;
-    height: 68px;
+    width: 52px;
+    height: 52px;
   }
 
   .fisiko-fox-wrap {
-    height: 76px;
+    height: 56px;
+  }
+
+  .fisiko-name {
+    gap: 6px;
+    font-size: 16px;
+  }
+
+  .fisiko-role {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+
+  .fisiko-bubble {
+    margin-top: 5px;
+    padding: 5px 11px;
+    font-size: 12px;
   }
 
   .fisiko-sub {
     display: none;
   }
 
+  .fisiko-log {
+    padding: 14px 13px;
+    gap: 12px;
+  }
+
   .fisiko-msg {
-    max-width: 86%;
+    max-width: 88%;
+    padding: 10px 13px;
+    font-size: 15px;
+  }
+
+  .fisiko-chips {
+    padding: 0 13px 10px;
+  }
+
+  .fisiko-chips button {
+    padding: 9px 14px;
+  }
+
+  .fisiko-preview {
+    margin: 0 13px 8px;
+  }
+
+  .fisiko-form {
+    gap: 8px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .fisiko-input {
+    /* 16px adalah ambang agar iOS tidak memperbesar halaman saat fokus. */
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+
+  .fisiko-pick,
+  .fisiko-send {
+    width: 44px;
+    height: 44px;
+  }
+
+  .fisiko-symbols span {
+    font-size: 28px;
   }
 
   .fisiko-btn {
